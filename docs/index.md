@@ -1,6 +1,6 @@
 # Zipper
 
-<img src="docs/zipper.png" alt="zipper logo" width="100" height="100"/>
+<img src="zipper.png" alt="zipper logo" width="100" height="100"/>
 
 `zipper` create multiple zip files of less then X MB
 
@@ -45,17 +45,17 @@ page and extract it
 
 2. Open terminal (cmd in case of windows) in extracted path
 
-    linux & Mac
+	linux & Mac
 
-    ```
-    ./zipper 5000 \home\user\test
-    ```
+	```
+	./zipper 5000 \home\user\test
+	```
 
-    Windows
+	Windows
 
-    ```
-    .\zipper.exe 5000 D:\test
-    ```
+	```
+	.\zipper.exe 5000 D:\test
+	```
 
 ### Container
 
@@ -78,18 +78,3 @@ docker run -v $(pwd):/zip -it pratikimprowised/zipper 5000 /zip/test
 ```
 
 > <div>Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
-
-## To-Do
-
-- [x] Drag and drop based for windows
-- [x] Don't change file name
-- [x] Configure size of zip from env
-- [x] UPX binaries for multiplateform containers
-- [x] docs: mkdocs CI
-- [ ] What if dir size is less then given zip size
-- [ ] Testing
-  - [ ] unit
-  - [ ] integration wrt multi os
-  - [ ] e2e
-- [ ] `UPX`ed binaries in releases
-- [ ] README Badges

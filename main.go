@@ -2,17 +2,20 @@ package main
 
 import (
 	"archive/zip"
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+
+	"code.cloudfoundry.org/bytefmt"
 )
 
 var wg sync.WaitGroup
@@ -23,92 +26,125 @@ type filess struct {
 }
 
 func main() {
-	pathPostFix := `\`
+	var (
+		err               error
+		newFiless         []filess
+		compressFilesList []string
+		tmpZipSplitSize   int
+		dirPath           string
+	)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// Set path postfix as per OS
+	pathPostFix := `/`
 	if runtime.GOOS == `windows` {
-		pathPostFix = `/`
+		pathPostFix = `\`
 	}
 
+	// Get current path of main
 	pwd, err := os.Getwd()
 	if err != nil {
-		log.Println(err)
-		os.Exit(1)
+		log.Fatalln(err)
 	}
-	log.Println(pwd)
-	thisRegex := regexp.MustCompile(`^this [0-9]+`)
+	fmt.Println("Current working dir:", pwd)
 
-	files, err := ioutil.ReadDir(".")
+	// For zip size
+	if len(os.Args) >= 2 {
+		if tmpZipSplitSize, err = strconv.Atoi(os.Args[1]); err != nil {
+			log.Fatalln("Converting tmpZipSplitSize: ", err)
+		}
+	} else {
+		tmpZipSplitSize = 5000 // 5MB
+	}
+	// Change to Bytes
+	zipSplitSize := (tmpZipSplitSize - 400) * 1000
+	log.Println("Splitting into", tmpZipSplitSize*1000)
+
+	// For folder/directory path
+	if len(os.Args) >= 3 {
+		dirPath = os.Args[2]
+	} else {
+		fmt.Println("Making zip of " +
+			bytefmt.ByteSize(uint64(tmpZipSplitSize*1000))) // returns "1K")
+		fmt.Println("---------------------")
+
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Println("Enter path to folder/directory or drag and drop that folder/directory here")
+		fmt.Println("---------------------")
+
+		text, _ := reader.ReadString('\n')
+		dirPath = strings.Replace(text, "\n", "", -1)
+	}
+	dir, err := os.Stat(dirPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("failed to open directory, error:", err)
 	}
-	var newFiless []filess
-	var compressFilesList []string
-	for _, f := range files {
-		if f.IsDir() && thisRegex.MatchString(f.Name()) {
-
-			// Accept in KB
-			tmpZipSplitSize, err := strconv.Atoi(strings.Split(f.Name(), " ")[1])
+	if !dir.IsDir() {
+		fmt.Println("Kindly enter absolute path of folder/directory")
+		log.Fatalf("%q is not a directory", dir.Name())
+	}
+	err = filepath.Walk(dirPath,
+		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
-				log.Println(err)
+				return err
 			}
-
-			// Change to Bytes
-			zipSplitSize := (tmpZipSplitSize - 500) * 1000
-			err = filepath.Walk(f.Name(),
-				func(path string, info os.FileInfo, err error) error {
-					if err != nil {
-						return err
-					}
-					// Skip dir
-					if info.IsDir() {
-						return nil
-					}
-					newFiless = append(
-						newFiless,
-						filess{
-							filepath.Join(f.Name(), info.Name()),
-							int(info.Size()),
-						})
-					return nil
+			// Skip dir
+			if info.IsDir() {
+				return nil
+			}
+			// Append files in struct list
+			newFiless = append(
+				newFiless,
+				filess{
+					filepath.Join(dirPath, info.Name()),
+					int(info.Size()),
 				})
+			return nil
+		})
+	if err != nil {
+		log.Println(err)
+	}
+	var fileSizeSum int = 0
+	var pass int = 0
+
+	// dirSize, _ := DirSize(dirPath)
+	for _, v := range newFiless {
+		if fileSizeSum <= zipSplitSize {
+			compressFilesList = append(compressFilesList, v.name)
+			fileSizeSum += v.size
+		} else {
+			log.Println("Pass", pass)
+			tmpCompress, err := ioutil.TempDir("", "prefix")
 			if err != nil {
-				log.Println(err)
+				log.Fatal(err)
 			}
-			var fileSizeSum int = 0
-			var i int = 0
-			for _, v := range newFiless {
-				if fileSizeSum <= zipSplitSize {
-					compressFilesList = append(compressFilesList, v.name)
-					fileSizeSum += v.size
-				} else {
-					log.Println("Pass", i)
-					tmpCompress, err := ioutil.TempDir("", "prefix")
-					if err != nil {
-						log.Fatal(err)
-					}
-					for _, v := range compressFilesList {
-						log.Println("Moving", v, "to", tmpCompress)
-						wg.Add(1)
-						go copy(
-							v, // source
-							filepath.Join(tmpCompress, filepath.Base(v)), // dest tmp/<filename>
-							int64(fileSizeSum/len(compressFilesList)))    // buffer
-						wg.Wait()
-					}
-					wg.Add(1)
-					go zipSource(tmpCompress+pathPostFix, fmt.Sprint(i)+".zip")
-					wg.Wait()
-					fileSizeSum = 0
-					compressFilesList = nil
-					i++
-				}
+			for _, v := range compressFilesList {
+				log.Println("Moving", v, "to", tmpCompress)
+				copy(
+					v, // source
+					filepath.Join(tmpCompress, filepath.Base(v)), // dest tmp/<filename>
+					int64(fileSizeSum/len(compressFilesList)))    // buffer
 			}
-			break
+			if err := zipSource(tmpCompress+pathPostFix,
+				path.Dir(dirPath)+pathPostFix+dir.Name()+`-`+fmt.Sprint(pass+1)+".zip"); err != nil {
+				log.Println("Error compressing", tmpCompress, err)
+			} else {
+				log.Println("Compressing", tmpCompress)
+			}
+			if err := os.RemoveAll(tmpCompress); err != nil {
+				log.Println("Error removing", tmpCompress, err)
+			} else {
+				log.Println("Removing", tmpCompress)
+			}
+			fileSizeSum = 0
+			compressFilesList = nil
+			pass++
 		}
 	}
 }
 
+// Create zip
 func zipSource(source, target string) error {
-	defer wg.Done()
 	// 1. Create a ZIP file and zip.Writer
 	f, err := os.Create(target)
 	if err != nil {
@@ -164,8 +200,8 @@ func zipSource(source, target string) error {
 	})
 }
 
+// Copy file
 func copy(src, dst string, BUFFERSIZE int64) error {
-	defer wg.Done()
 	sourceFileStat, err := os.Stat(src)
 	if err != nil {
 		return err
@@ -211,4 +247,19 @@ func copy(src, dst string, BUFFERSIZE int64) error {
 		}
 	}
 	return err
+}
+
+// Size of dir
+func DirSize(path string) (int64, error) {
+	var size int64
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+	return size, err
 }

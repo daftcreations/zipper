@@ -34,15 +34,15 @@ FROM scratch AS artifacts
 COPY --from=build /out/*.tar.gz /
 COPY --from=build /out/*.zip /
 
-FROM --platform=$BUILDPLATFORM pratikimprowise/golang:1.17 as build2
-COPY --from=build /usr/local/bin/zipper /usr/local/bin/zipper
-RUN  strip /usr/local/bin/zipper && \
-  /usr/local/bin/upx -9 /usr/local/bin/zipper
+# FROM --platform=$BUILDPLATFORM pratikimprowise/golang:1.17 as build2
+# COPY --from=build /usr/local/bin/zipper /usr/local/bin/zipper
+# RUN  strip /usr/local/bin/zipper && \
+#   /usr/local/bin/upx -9 /usr/local/bin/zipper
 
 FROM scratch
 COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /etc/group /etc/group
-COPY --from=build2 /usr/local/bin/zipper /usr/local/bin/zipper
+COPY --from=build /usr/local/bin/zipper /usr/local/bin/zipper
 USER appuser:appuser
 WORKDIR /tmp
 WORKDIR /

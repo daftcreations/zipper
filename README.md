@@ -84,8 +84,8 @@ docker run -v $(pwd):/zip -it pratikimprowised/zipper 5000 /zip/test
 - [x] Drag and drop based for windows
 - [x] Don't change file name
 - [x] Configure size of zip from env
-- [x] UPX binaries for multiplateform containers
 - [x] docs: mkdocs CI
+- [ ] UPX binaries for multiplateform containers
 - [ ] What if dir size is less then given zip size
 - [ ] Testing
   - [ ] unit

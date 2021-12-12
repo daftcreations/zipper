@@ -1,10 +1,8 @@
 ARG GO_VERSION=1.17
 
 FROM --platform=$BUILDPLATFORM crazymax/goreleaser-xx:1.1.0 AS goreleaser-xx
-FROM --platform=$BUILDPLATFORM pratikimprowise/golang:${GO_VERSION} as upx
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS base
 COPY --from=goreleaser-xx / /
-COPY --from=upx /usr/local/bin/upx /usr/local/bin/upx
 RUN adduser \
     --disabled-password \
     --gecos "" \
@@ -36,20 +34,10 @@ FROM scratch AS artifacts
 COPY --from=build /out/*.tar.gz /
 COPY --from=build /out/*.zip /
 
-FROM base AS build2
+FROM --platform=$BUILDPLATFORM pratikimprowise/golang:${GO_VERSION} as build2
 ARG TARGETPLATFORM
-ARG GIT_REF
-RUN --mount=type=bind,target=/src,rw \
-  --mount=type=cache,target=/root/.cache/go-build \
-  --mount=target=/go/pkg/mod,type=cache \
-  goreleaser-xx --debug \
-    --name "zipper" \
-    --artifact-type "bin" \
-    --build-pre-hooks="go mod tidy" \
-    --build-pre-hooks="go mod download" \
-    --build-post-hooks="upx -9 /usr/local/bin/{{ .ProjectName }}" \
-    --main="." \
-    --ldflags="-s -w"
+COPY --from=build /usr/local/bin/zipper /usr/local/bin/zipper
+RUN upx -9 /usr/local/bin/zipper
 
 FROM scratch
 COPY --from=base /etc/passwd /etc/passwd

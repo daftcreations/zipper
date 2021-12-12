@@ -1,6 +1,6 @@
 # Zipper
 
-<img src="zipper.png" alt="zipper logo" width="100" height="100"/>
+<img src="docs/zipper.png" alt="zipper logo" width="100" height="100"/>
 
 `zipper` create multiple zip files of less then X MB
 
@@ -14,7 +14,7 @@
 zipper <(Optional) size> <(Optional) target>
 ```
 
-- (Optional) Size in KB. Default 5000 which is 5MB, e.g. `zipper 5000`
+- (Optional) Size in KB. Default 3000 which is 3MB, e.g. `zipper 3000`
 - (Optional) target: folder/directory which going to compress it will ask you in
 prompt it you won't add target in args
 
@@ -45,17 +45,17 @@ page and extract it
 
 2. Open terminal (cmd in case of windows) in extracted path
 
-	linux & Mac
+    linux & Mac
 
-	```
-	./zipper 5000 \home\user\test
-	```
+    ```
+    ./zipper 3000 \home\user\test
+    ```
 
-	Windows
+    Windows
 
-	```
-	.\zipper.exe 5000 D:\test
-	```
+    ```
+    .\zipper.exe 3000 D:\test
+    ```
 
 ### Container
 
@@ -74,7 +74,46 @@ Container image available for fllowing architecture
 2. Now run
 
 ```bash
-docker run -v $(pwd):/zip -it pratikimprowised/zipper 5000 /zip/test
+docker run -v $(pwd):/zip -it pratikimprowised/zipper 3000 /zip/test
 ```
+
+> Binaries available in container are `upx`ed, more about upx [here](https://github.com/upx/upx)
+
+## Setup zipper
+
+### Linux & Mac
+
+- Open terminal in extracted zipper folder/directory
+
+- Move `zipper` to bin
+
+```bash
+mv zipper /usr/local/bin/zipper
+```
+
+- Now `zipper` should be available user wide
+
+### Windows
+
+- Open powershell in extracted zipper folder/directory
+
+- Move `zipper` to `c:\bins\`
+
+```
+New-Item -Path "c:\" -Name "bins" -ItemType "directory"
+Move-Item -Path zipper -Destination c:\bins\
+```
+
+- Add `c:\bins\` to user's `PATH`
+
+```
+$PATH = [Environment]::GetEnvironmentVariable("PATH")
+$bins_path = "c:\bins\"
+[Environment]::SetEnvironmentVariable("PATH", "$PATH;$bins_path")
+```
+
+- Now `zipper` should be available user wide
+
+---
 
 > <div>Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>

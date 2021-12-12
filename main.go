@@ -54,7 +54,7 @@ func main() {
 			log.Fatalln("Converting tmpZipSplitSize: ", err)
 		}
 	} else {
-		tmpZipSplitSize = 5000 // 5MB
+		tmpZipSplitSize = 3000 // 5MB
 	}
 	// Change to Bytes
 	zipSplitSize := (tmpZipSplitSize - 400) * 1000
@@ -75,6 +75,9 @@ func main() {
 		text, _ := reader.ReadString('\n')
 		dirPath = strings.Replace(text, "\n", "", -1)
 	}
+
+	//  Trim ending linux and mac `/` or in windows `\` from path
+	dirPath = strings.TrimRight(dirPath, pathPostFix)
 	dir, err := os.Stat(dirPath)
 	if err != nil {
 		log.Println("failed to open directory, error:", err)
@@ -92,6 +95,15 @@ func main() {
 			if info.IsDir() {
 				return nil
 			}
+
+			// Exit if any file is more then tmpZipSplitSize
+			if info.Size() > int64(zipSplitSize) {
+				fmt.Println("####################")
+				fmt.Printf("\"%v\" is more then %vKB\n", info.Name(), tmpZipSplitSize)
+				fmt.Println("####################")
+				os.Exit(1)
+			}
+
 			// Append files in struct list
 			newFiless = append(
 				newFiless,
@@ -104,9 +116,16 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+
+	// Disable sorting for now
+	// sort.SliceStable(newFiless, func(i, j int) bool {
+	// 	return newFiless[i].size < newFiless[j].size
+	// })
+
+	// log.Println(newFiless)
+
 	var fileSizeSum int = 0
 	var pass int = 0
-
 	// dirSize, _ := DirSize(dirPath)
 	for _, v := range newFiless {
 		if fileSizeSum <= zipSplitSize {
@@ -125,8 +144,10 @@ func main() {
 					filepath.Join(tmpCompress, filepath.Base(v)), // dest tmp/<filename>
 					int64(fileSizeSum/len(compressFilesList)))    // buffer
 			}
-			if err := zipSource(tmpCompress+pathPostFix,
-				path.Dir(dirPath)+pathPostFix+dir.Name()+`-`+fmt.Sprint(pass+1)+".zip"); err != nil {
+			err = zipSource(
+				tmpCompress+pathPostFix,
+				filepath.Join(path.Dir(dirPath), dir.Name()+`-`+fmt.Sprint(pass+1)+".zip"))
+			if err != nil {
 				log.Println("Error compressing", tmpCompress, err)
 			} else {
 				log.Println("Compressing", tmpCompress)

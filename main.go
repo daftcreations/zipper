@@ -25,18 +25,21 @@ type filess struct {
 	size int
 }
 
+var (
+	newFiless         []filess
+	compressFilesList []string
+	pathPostFix       string = "/"
+)
+
 func main() {
 	var (
-		err               error
-		newFiless         []filess
-		compressFilesList []string
-		tmpZipSplitSize   int
-		dirPath           string
+		err             error
+		tmpZipSplitSize int
+		dirPath         string
 	)
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Set path postfix as per OS
-	pathPostFix := `/`
 	if runtime.GOOS == `windows` {
 		pathPostFix = `\`
 	}
@@ -78,6 +81,10 @@ func main() {
 
 	//  Trim ending linux and mac `/` or in windows `\` from path
 	dirPath = strings.TrimRight(dirPath, pathPostFix)
+	crateZips(dirPath, zipSplitSize)
+}
+
+func crateZips(dirPath string, zipSplitSize int) {
 	dir, err := os.Stat(dirPath)
 	if err != nil {
 		log.Println("failed to open directory, error:", err)
@@ -99,7 +106,7 @@ func main() {
 			// Exit if any file is more then tmpZipSplitSize
 			if info.Size() > int64(zipSplitSize) {
 				fmt.Println("####################")
-				fmt.Printf("\"%v\" is more then %vKB\n", info.Name(), tmpZipSplitSize)
+				fmt.Printf("\"%v\" is more then %vKB\n", info.Name(), zipSplitSize)
 				fmt.Println("####################")
 				os.Exit(1)
 			}
@@ -139,18 +146,23 @@ func main() {
 			}
 			for _, v := range compressFilesList {
 				log.Println("Moving", v, "to", tmpCompress)
-				copy(
-					v, // source
-					filepath.Join(tmpCompress, filepath.Base(v)), // dest tmp/<filename>
-					int64(fileSizeSum/len(compressFilesList)))    // buffer
+				err = copy(v, filepath.Join(tmpCompress, filepath.Base(v)))
+				if err != nil {
+					log.Fatalf("Cannot copy \"%v\" to \"%v\"\n",
+						v, filepath.Join(tmpCompress, filepath.Base(v)))
+				}
 			}
+			destZipPath := filepath.Join(
+				path.Dir(dirPath),
+				dir.Name()+`-`+fmt.Sprint(pass+1)+".zip")
 			err = zipSource(
 				tmpCompress+pathPostFix,
-				filepath.Join(path.Dir(dirPath), dir.Name()+`-`+fmt.Sprint(pass+1)+".zip"))
+				destZipPath)
 			if err != nil {
 				log.Println("Error compressing", tmpCompress, err)
 			} else {
 				log.Println("Compressing", tmpCompress)
+				log.Println("Creating zip at", destZipPath)
 			}
 			if err := os.RemoveAll(tmpCompress); err != nil {
 				log.Println("Error removing", tmpCompress, err)
@@ -166,6 +178,10 @@ func main() {
 
 // Create zip
 func zipSource(source, target string) error {
+	if runtime.GOOS == `windows` {
+		pathPostFix = `\`
+	}
+
 	// 1. Create a ZIP file and zip.Writer
 	f, err := os.Create(target)
 	if err != nil {
@@ -197,7 +213,7 @@ func zipSource(source, target string) error {
 			return err
 		}
 		if info.IsDir() {
-			header.Name += "/"
+			header.Name += pathPostFix
 		}
 
 		// 5. Create writer for the file header and save content of the file
@@ -222,65 +238,22 @@ func zipSource(source, target string) error {
 }
 
 // Copy file
-func copy(src, dst string, BUFFERSIZE int64) error {
-	sourceFileStat, err := os.Stat(src)
+func copy(src, dst string) error {
+	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
+	defer in.Close()
 
-	if !sourceFileStat.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file.", src)
-	}
-
-	source, err := os.Open(src)
+	out, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
-	defer source.Close()
+	defer out.Close()
 
-	_, err = os.Stat(dst)
-	if err == nil {
-		return fmt.Errorf("File %s already exists.", dst)
-	}
-
-	destination, err := os.Create(dst)
+	_, err = io.Copy(out, in)
 	if err != nil {
 		return err
 	}
-	defer destination.Close()
-
-	if err != nil {
-		panic(err)
-	}
-
-	buf := make([]byte, BUFFERSIZE)
-	for {
-		n, err := source.Read(buf)
-		if err != nil && err != io.EOF {
-			return err
-		}
-		if n == 0 {
-			break
-		}
-
-		if _, err := destination.Write(buf[:n]); err != nil {
-			return err
-		}
-	}
-	return err
-}
-
-// Size of dir
-func DirSize(path string) (int64, error) {
-	var size int64
-	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			size += info.Size()
-		}
-		return err
-	})
-	return size, err
+	return out.Close()
 }

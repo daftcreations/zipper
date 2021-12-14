@@ -121,8 +121,9 @@ $bins_path = "c:\bins\"
 - [x] UPX binaries for multiplateform containers
 - [ ] `UPX`ed binaries in releases
 - [ ] What if dir size is less then given zip size
+- [ ] Go routines to handle zipping
 - [ ] Testing
-  - [ ] unit
+  - [x] unit
   - [ ] integration wrt multi os
   - [ ] e2e
 - [ ] README Badges

@@ -5,6 +5,7 @@ on:
     branches:
       - "master"
       - "main"
+      - "dev*"
     tags:
       - "v*"
     paths-ignore:
@@ -16,6 +17,7 @@ on:
     branches:
       - "master"
       - "main"
+      - "dev*"
     paths-ignore:
       - "**.md"
       - ".github/workflows/docs.yaml"

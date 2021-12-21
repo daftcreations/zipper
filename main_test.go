@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/mholt/archiver/v3"
 	"gopkg.in/loremipsum.v1"
 )
 
@@ -19,7 +20,7 @@ func TestZipFile(t *testing.T) {
 	// Give tmpFile
 	tmpFileName := "zippertest.txt"
 	tmpFilePath := filepath.Join(tempDir, tmpFileName)
-	destZipName := filepath.Join(tempDir, tmpFileName)
+	destZipName := filepath.Join(tempDir, tmpFileName) + ".zip"
 
 	// Create file
 	testFile, err := os.Create(tmpFilePath)
@@ -29,7 +30,7 @@ func TestZipFile(t *testing.T) {
 	testFile.Close()
 
 	// Zip file
-	err = zipSource(tmpFilePath, destZipName)
+	err = archiver.Archive([]string{tmpFilePath}, destZipName)
 	if err != nil {
 		t.Errorf("Got error while zipping \"%v\" to \"%v\": %v\n", tmpFilePath, destZipName, err)
 	}

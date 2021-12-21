@@ -41,11 +41,6 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - uses: actions/cache@v2
         with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
           path: |
             ~/go/pkg/mod
             ~/.cache/go-build

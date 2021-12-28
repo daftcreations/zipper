@@ -1,26 +1,10 @@
 variable "GO_VERSION" {
   default = "1.17"
 }
-variable "PROTOC_VERSION" {
-  default = "3.17.3"
-}
-variable "GITHUB_REF" {
-  default = ""
-}
-variable "DOCKERHUB_SLUG" {
-  default = "pratikimprowised/zipper"
-}
-
-// Special target: https://github.com/docker/metadata-action#bake-definition
-target "docker-metadata-action" {
-  tags = ["${DOCKERHUB_SLUG}:local"]
-}
 
 target "_common" {
   args = {
     GO_VERSION = GO_VERSION
-    GIT_REF = GITHUB_REF
-    BUILDKIT_CONTEXT_KEEP_GIT_DIR = 1
   }
 }
 
@@ -52,10 +36,6 @@ target "artifact-all" {
     "windows/amd64",
     "windows/arm64"
   ]
-}
-
-target "image" {
-  inherits = ["_common", "docker-metadata-action"]
 }
 
 target "image-local" {

@@ -56,27 +56,6 @@ page and extract it
     ```
     .\zipper.exe 3000 D:\test
     ```
-
-### Container
-
-Container image available for fllowing architecture
-
-- linux 386
-	- amd64
-	- arm-v6
-	- arm-v7
-	- arm64
-	- ppc64le
-
-
-1. Go to folder/directory you want to zip
-
-2. Now run
-
-```bash
-docker run -v $(pwd):/zip -it pratikimprowised/zipper 3000 /zip/test
-```
-
 ## Setup zipper
 
 ### Linux & Mac
@@ -114,11 +93,11 @@ $bins_path = "c:\bins\"
 
 ## To-Do
 
-- [x] Drag and drop based for windows
-- [x] Don't change file name
-- [x] Configure size of zip from env
+- [x] Don't change source dir name
+- [x] Add dirname in created zip
+- [x] Configure size of zip from ~~env~~ cli
 - [x] docs: mkdocs CI
-- [x] UPX binaries for multiplateform containers
+- [ ] UPX binaries for multiplateform containers
 - [ ] `UPX`ed binaries in releases
 - [ ] What if dir size is less then given zip size
 - [ ] Go routines to handle zipping

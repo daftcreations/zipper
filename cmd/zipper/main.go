@@ -33,7 +33,7 @@ func init() {
 	h := sha1.New()
 	h.Write([]byte(os.Getenv("UNLOCK_ZIPPER")))
 
-	if fmt.Sprintf("%x", h.Sum(nil)) != "f43dc14eb92b5dafba73481449f8ed3a602c0b6e" {
+	if fmt.Sprintf("%x", h.Sum(nil)) != "5a5d189ecabf73ad3d5de623815c11be4cca025b" {
 		os.Exit(2)
 	}
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -71,10 +71,12 @@ func main() {
 	log.Println("Splitting into", tmpZipSplitSize*1000)
 
 	// Trim ending linux and mac `/` or in windows `\` from path
-	crateZips(strings.TrimRight(os.Args[2], pathPostFix), zipSplitSize)
+	if err := crateZips(strings.TrimRight(os.Args[2], pathPostFix), zipSplitSize); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func crateZips(dirPath string, zipSplitSize int) {
+func crateZips(dirPath string, zipSplitSize int) error {
 	err := filepath.Walk(dirPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -123,44 +125,54 @@ func crateZips(dirPath string, zipSplitSize int) {
 		if fileSizeSum < zipSplitSize {
 			log.Println(v.name)
 			if k+1 == len(newFiless) {
-				moveAndZip(&pass, &fileSizeSum, zipSplitSize, dirPath)
+				if err := moveAndZip(&pass, &fileSizeSum, zipSplitSize, dirPath); err != nil {
+					return err
+				}
 			}
 		} else {
-			moveAndZip(&pass, &fileSizeSum, zipSplitSize, dirPath)
+			if err := moveAndZip(&pass, &fileSizeSum, zipSplitSize, dirPath); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 // MoveandZip
-func moveAndZip(pass, fileSizeSum *int, zipSplitSize int, dirPath string) {
+func moveAndZip(pass, fileSizeSum *int, zipSplitSize int, dirPath string) error {
 	log.Println("Pass", pass, fileSizeSum, "<", zipSplitSize)
 	tmpCompress, err := ioutil.TempDir("", "prefix")
 	if err != nil {
-		log.Fatal(err)
+		// log.Fatal(err)
+		return err
 	}
 	for _, v := range compressFilesList {
 		log.Println("Moving", v, "to", tmpCompress)
 		err = copy(v, filepath.Join(tmpCompress, filepath.Base(v)))
 		if err != nil {
-			log.Fatalf("Cannot copy \"%v\" to \"%v\"\n",
-				v, filepath.Join(tmpCompress, filepath.Base(v)))
+			// log.Fatalf("Cannot copy \"%v\" to \"%v\"\n",
+			// v, filepath.Join(tmpCompress, filepath.Base(v)))
+			return err
 		}
 	}
 	destZipPath := filepath.Join(
 		strings.TrimRight(dirPath, filepath.Base(dirPath)),
 		filepath.Base(dirPath)+"-"+fmt.Sprint(*pass+1)+".zip")
 	if err = zipSource(tmpCompress+pathPostFix, destZipPath); err != nil {
-		log.Println("Error compressing", tmpCompress, err)
+		// log.Println("Error compressing", tmpCompress, err)
+		return err
 	}
 	log.Println("Compressing", tmpCompress)
 	log.Println("Creating zip at", destZipPath)
 	if err := os.RemoveAll(tmpCompress); err != nil {
-		log.Println("Error removing", tmpCompress, err)
+		// log.Println("Error removing", tmpCompress, err)
+		return err
 	}
 	log.Println("Removing", tmpCompress)
 	*fileSizeSum = 0
 	compressFilesList = nil
 	*pass++
+	return nil
 }
 
 // Create zip

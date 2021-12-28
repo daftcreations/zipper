@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/sha1"
-	"errors"
 	"fmt"
 	"image"
 	_ "image/jpeg"
@@ -18,7 +17,7 @@ func init() {
 	h := sha1.New()
 	h.Write([]byte(os.Getenv("UNLOCK_ZIPPER")))
 
-	if fmt.Sprintf("%x", h.Sum(nil)) != "f43dc14eb92b5dafba73481449f8ed3a602c0b6e" {
+	if fmt.Sprintf("%x", h.Sum(nil)) != "5a5d189ecabf73ad3d5de623815c11be4cca025b" {
 		os.Exit(2)
 	}
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -50,20 +49,24 @@ func main() {
 		log.Fatalln(err)
 	}
 	for _, v := range imageFiles {
-		decodeImage(v)
+		if err := decodeImage(v); err != nil {
+			log.Fatalln(err)
+		}
 	}
 }
 
-func decodeImage(imageFiles string) {
+func decodeImage(imageFiles string) error {
 	// Decoding images
 	imageFile, err := os.Open(imageFiles)
 	if err != nil {
-		log.Fatalf("Cannot open file: %v\n", err)
+		// log.Fatalf("Cannot open file: %v\n", err)
+		return err
 	}
 
 	image, _, err := image.DecodeConfig(imageFile)
 	if err != nil {
-		log.Fatalf("Cannot decode config: %v\n", err)
+		// log.Fatalf("Cannot decode config: %v\n", err)
+		return err
 	}
 	imageFile.Close()
 
@@ -75,7 +78,7 @@ func decodeImage(imageFiles string) {
 				image.Width, image.Height)
 		} else {
 			log.Println("Resizing to landscape (1920x1080)")
-			resizeImage(imageFiles, 1920, 1080)
+			return resizeImage(imageFiles, 1920, 1080)
 		}
 	case image.Width < image.Height:
 		if image.Width == 1080 && image.Height == 1920 {
@@ -83,25 +86,29 @@ func decodeImage(imageFiles string) {
 				image.Width, image.Height)
 		} else {
 			log.Println("Resizing to portrait (1080x1920)")
-			resizeImage(imageFiles, 1080, 1920)
+			return resizeImage(imageFiles, 1080, 1920)
 		}
 	default:
 		log.Println("Not compatible")
 	}
+	return nil
 }
 
 func resizeImage(path string, width, height int) error {
 	file, err := imaging.Open(path)
 	if err != nil {
-		log.Fatalf("Failed to open image \"%v\": %v\n", path, err)
+		// log.Fatalf("Failed to open image \"%v\": %v\n", path, err)
 		// return errors.New("Failed to open image \"%v\": %v\n", path, err)
+		return err
 	}
 	// if err = imaging.Save(imaging.Resize(file, width, height, imaging.Lanczos), filepath.Join(filepath.Dir(path), strings.TrimRight(filepath.Base(path), filepath.Ext(path))+"-replace"+filepath.Ext(path))); err != nil {
 	if err = os.Remove(path); err != nil {
-		return errors.New("Failed to remove: " + path)
+		// return errors.New("Failed to remove: " + path)
+		return err
 	}
 	if err = imaging.Save(imaging.Resize(file, width, height, imaging.Lanczos), path); err != nil {
-		log.Fatalf("Failed to save image \"%v\": %v\n", path, err)
+		// log.Fatalf("Failed to save image \"%v\": %v\n", path, err)
+		return err
 	}
 	return nil
 }

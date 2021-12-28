@@ -5,13 +5,19 @@ import (
 	_ "image/jpeg"
 	"log"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+var pathPostfix string = `/`
+
 func TestLandscapImage(t *testing.T) {
-	imagePath := `../../misc/to-landscap-image.png`
+	if runtime.GOOS == `windows` {
+		pathPostfix = `\`
+	}
+	imagePath := ".." + pathPostfix + ".." + pathPostfix + "misc" + pathPostfix + "to-landscap-image.png"
 
 	// Original image
 	imageFile, err := os.Open(imagePath)
@@ -48,7 +54,10 @@ func TestLandscapImage(t *testing.T) {
 }
 
 func TestPotraitImage(t *testing.T) {
-	imagePath := `../../misc/to-portait-image.png`
+	if runtime.GOOS == `windows` {
+		pathPostfix = `\`
+	}
+	imagePath := ".." + pathPostfix + ".." + pathPostfix + "misc" + pathPostfix + "to-portait-image.png"
 
 	// Original image
 	imageFile, err := os.Open(imagePath)
@@ -85,7 +94,10 @@ func TestPotraitImage(t *testing.T) {
 }
 
 func TestLandscapImage2(t *testing.T) {
-	imagePath := `../../misc/landscap-image.png`
+	if runtime.GOOS == `windows` {
+		pathPostfix = `\`
+	}
+	imagePath := ".." + pathPostfix + ".." + pathPostfix + "misc" + pathPostfix + "landscap-image.png"
 
 	if err := decodeImage(imagePath); err != nil {
 		t.Errorf("Cannot decode config: %v\n", err)
@@ -93,8 +105,11 @@ func TestLandscapImage2(t *testing.T) {
 }
 
 func TestNonImage(t *testing.T) {
-	imagePath := `../../misc/non-image.txt`
-
+	if runtime.GOOS == `windows` {
+		pathPostfix = `\`
+	}
+	imagePath := ".." + pathPostfix + ".." + pathPostfix + "misc" + pathPostfix + "non-image.txt"
+	t.Log("Taking file", imagePath)
 	if !assert.NotNil(t, decodeImage(imagePath), "okayy") {
 		t.Error("Should return error like \"image: unknown format\"")
 	}

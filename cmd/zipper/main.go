@@ -1,10 +1,7 @@
 package main
 
 import (
-	"archive/zip"
-	"crypto/sha1"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,13 +10,14 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	. "github.com/mholt/archiver/v3"
 )
 
 var wg sync.WaitGroup
 
 type filess struct {
 	name string
-	size int
 }
 
 var (
@@ -29,35 +27,19 @@ var (
 	pwd               string
 )
 
-func init() {
-	h := sha1.New()
-	h.Write([]byte(os.Getenv("UNLOCK_ZIPPER")))
+func main() {
+	var (
+		err             error
+		tmpZipSplitSize int
+	)
 
-	if fmt.Sprintf("%x", h.Sum(nil)) != "5a5d189ecabf73ad3d5de623815c11be4cca025b" {
-		os.Exit(2)
-	}
+	// This utility will mostly run on low power CPUs so
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Set path postfix as per OS
 	if runtime.GOOS == `windows` {
 		pathPostFix = `\`
 	}
-}
-
-func main() {
-	var (
-		err             error
-		tmpZipSplitSize int
-		// dirPath         string
-	)
-
-	// Get current path of main
-	pwd, err := os.Getwd()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Println("Current working dir:", pwd)
-
 	// For zip size
 	if len(os.Args) >= 2 {
 		if tmpZipSplitSize, err = strconv.Atoi(os.Args[1]); err != nil {
@@ -67,12 +49,13 @@ func main() {
 		tmpZipSplitSize = 3000 // 5MB
 	}
 	// Change to Bytes
-	zipSplitSize := (tmpZipSplitSize - 400) * 1000
-	log.Println("Splitting into", tmpZipSplitSize*1000)
+	zipSplitSize := tmpZipSplitSize * 1000
+	log.Println("Splitting into", zipSplitSize)
 
 	// Trim ending linux and mac `/` or in windows `\` from path
-	if err := crateZips(strings.TrimRight(os.Args[2], pathPostFix), zipSplitSize); err != nil {
-		log.Fatal(err)
+	if err := crateZips(
+		strings.TrimRight(os.Args[2], pathPostFix), zipSplitSize); err != nil {
+		log.Fatal("Error creating zip: ", err)
 	}
 }
 
@@ -87,12 +70,25 @@ func crateZips(dirPath string, zipSplitSize int) error {
 				return nil
 			}
 
-			// Exit if any file is more then tmpZipSplitSize
+			// Exit if any file is more then zipSplitSize
 			if info.Size() > int64(zipSplitSize) {
-				fmt.Println("####################")
-				fmt.Printf("\"%v\" is more then %vKB\n", info.Name(), zipSplitSize)
-				fmt.Println("####################")
-				os.Exit(1)
+				return fmt.Errorf("\"%v\" is more then %vKB\n", info.Name(), zipSplitSize)
+			}
+			return nil
+		})
+	if err != nil {
+		log.Println(err)
+		return fmt.Errorf("Error walking through path: %v", err)
+	}
+
+	_ = filepath.Walk(dirPath,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			// Skip dir
+			if info.IsDir() {
+				return nil
 			}
 
 			// Append files in struct list
@@ -100,155 +96,61 @@ func crateZips(dirPath string, zipSplitSize int) error {
 				newFiless,
 				filess{
 					filepath.Join(dirPath, info.Name()),
-					int(info.Size()),
 				})
 			return nil
 		})
-	if err != nil {
-		log.Println(err)
-	}
 
-	// Disable sorting for now
-	// sort.SliceStable(newFiless, func(i, j int) bool {
-	// 	return newFiless[i].size < newFiless[j].size
-	// })
-
-	// log.Println(newFiless)
-
-	var fileSizeSum int = 0
-	var pass int = 0
-	// dirSize, _ := DirSize(dirPath)
+	// Adding last file seondtime to handle last file case when creating zip
 	for k, v := range newFiless {
-		log.Println(k, ":", v)
-		compressFilesList = append(compressFilesList, v.name)
-		fileSizeSum += v.size
-		if fileSizeSum < zipSplitSize {
-			log.Println(v.name)
-			if k+1 == len(newFiless) {
-				if err := moveAndZip(&pass, &fileSizeSum, zipSplitSize, dirPath); err != nil {
-					return err
+		if k == len(newFiless)-1 {
+			newFiless = append(newFiless, v)
+		}
+	}
+
+	var (
+		count     int = 1
+		filesList []string
+	)
+	// ch := make(chan struct{}, runtime.NumCPU())
+
+	for k, v := range newFiless {
+		filesList = append(filesList, v.name)
+		tmpCompress, err := ioutil.TempDir("", "prefix")
+		if err != nil {
+			return fmt.Errorf("Error creating temp dir: %v", err)
+		}
+		tmpZipPath := filepath.Join(tmpCompress, "test.zip")
+		if err = Archive(filesList, tmpZipPath); err != nil {
+			return fmt.Errorf("Error creating temp archive: %v", err)
+		}
+		fileStat, err := os.Stat(tmpZipPath)
+		if err != nil {
+			return fmt.Errorf("Error getting file info of tmpzip file: %v", err)
+		}
+		if err = os.RemoveAll(tmpZipPath); err != nil {
+			return fmt.Errorf("Error removing temp zipfile: %v", err)
+		}
+
+		if fileStat.Size() > int64(zipSplitSize) || k == len(newFiless)-1 {
+			wg.Wait()
+			wg.Add(1)
+			go func(filesList []string, dest string) {
+				fmt.Println("PASS", fmt.Sprint(count), ": Creating", filepath.Join(dirPath, dest), ": -----------------------------")
+				if err := Archive(filesList, dest); err != nil {
+					log.Fatal(err)
 				}
-			}
-		} else {
-			if err := moveAndZip(&pass, &fileSizeSum, zipSplitSize, dirPath); err != nil {
-				return err
-			}
+				wg.Done()
+			}(filesList[:len(filesList)-1], filepath.Base(dirPath)+"-"+fmt.Sprint(count)+".zip")
+
+			// log.Println("Cretain zip of ", filesList)
+			lastFile := filesList[len(filesList)-1]
+			filesList = []string{}
+			filesList = append(filesList, lastFile)
+
+			count++
 		}
+		// log.Println("filesList", filesList)
+		wg.Wait()
 	}
 	return nil
-}
-
-// MoveandZip
-func moveAndZip(pass, fileSizeSum *int, zipSplitSize int, dirPath string) error {
-	log.Println("Pass", pass, fileSizeSum, "<", zipSplitSize)
-	tmpCompress, err := ioutil.TempDir("", "prefix")
-	if err != nil {
-		// log.Fatal(err)
-		return err
-	}
-	for _, v := range compressFilesList {
-		log.Println("Moving", v, "to", tmpCompress)
-		err = copy(v, filepath.Join(tmpCompress, filepath.Base(v)))
-		if err != nil {
-			// log.Fatalf("Cannot copy \"%v\" to \"%v\"\n",
-			// v, filepath.Join(tmpCompress, filepath.Base(v)))
-			return err
-		}
-	}
-	destZipPath := filepath.Join(
-		strings.TrimRight(dirPath, filepath.Base(dirPath)),
-		filepath.Base(dirPath)+"-"+fmt.Sprint(*pass+1)+".zip")
-	if err = zipSource(tmpCompress+pathPostFix, destZipPath); err != nil {
-		// log.Println("Error compressing", tmpCompress, err)
-		return err
-	}
-	log.Println("Compressing", tmpCompress)
-	log.Println("Creating zip at", destZipPath)
-	if err := os.RemoveAll(tmpCompress); err != nil {
-		// log.Println("Error removing", tmpCompress, err)
-		return err
-	}
-	log.Println("Removing", tmpCompress)
-	*fileSizeSum = 0
-	compressFilesList = nil
-	*pass++
-	return nil
-}
-
-// Create zip
-func zipSource(source, target string) error {
-	// 1. Create a ZIP file and zip.Writer
-	f, err := os.Create(target)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	writer := zip.NewWriter(f)
-	defer writer.Close()
-
-	// 2. Go through all the files of the source
-	return filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// 3. Create a local file header
-		header, err := zip.FileInfoHeader(info)
-		if err != nil {
-			return err
-		}
-
-		// set compression
-		header.Method = zip.Deflate
-
-		// 4. Set relative path of a file as the header name
-		header.Name, err = filepath.Rel(filepath.Dir(source), path)
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			header.Name += "/"
-		}
-
-		// 5. Create writer for the file header and save content of the file
-		headerWriter, err := writer.CreateHeader(header)
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		f, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		_, err = io.Copy(headerWriter, f)
-		return err
-	})
-}
-
-// Copy file
-func copy(src, dst string) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, in)
-	if err != nil {
-		return err
-	}
-	return out.Close()
 }

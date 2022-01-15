@@ -1,99 +1,102 @@
 package main
 
 import (
-	"io/ioutil"
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
-	"github.com/mholt/archiver/v3"
+	. "github.com/mholt/archiver/v3"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/loremipsum.v1"
 )
 
-func TestZipFile(t *testing.T) {
-	// Create tempdir
-	tempDir, err := ioutil.TempDir("", "tmp")
+func TestE2E(t *testing.T) {
+	// ch := make(chan struct{}, runtime.NumCPU())
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	noOfTmpFiles := 20
+
+	// Create temp dir for creating test files
+	pwd, err := os.Getwd()
 	if err != nil {
-		t.Errorf("Error while creating temp dir: %v", err)
+		t.Error("Error getting working dir:", err)
+	}
+	testDir := filepath.Join(pwd, "testdir")
+	tmpFilesPath := filepath.Join(testDir, "testfiles")
+	if err = os.MkdirAll(tmpFilesPath, 0777); err != nil {
+		t.Error("Error creating ", tmpFilesPath, " dir:", err)
 	}
 
-	// Give tmpFile
-	tmpFileName := "zippertest.txt"
-	tmpFilePath := filepath.Join(tempDir, tmpFileName)
-	destZipName := filepath.Join(tempDir, tmpFileName) + ".zip"
-
-	// Create file
-	testFile, err := os.Create(tmpFilePath)
-	if err != nil {
-		t.Errorf("Error while creating file at \"%v\": %v\n", tmpFilePath, err)
-	}
-	testFile.Close()
-
-	// Zip file
-	err = archiver.Archive([]string{tmpFilePath}, destZipName)
-	if err != nil {
-		t.Errorf("Got error while zipping \"%v\" to \"%v\": %v\n", tmpFilePath, destZipName, err)
+	// Create testfiles
+	for i := 0; i < noOfTmpFiles; i++ {
+		// tmpFileName := filepath.Join(tmpFilesPath, fmt.Sprint(i)+"-tmpfile.txt")
+		// ch <- struct{}{}
+		func(tmpFileName string) {
+			testFile, err := os.Create(tmpFileName)
+			if err != nil {
+				t.Error("Error while creating file at ", tmpFileName, " :", err)
+			}
+			testFile.Write([]byte(loremipsum.New().Sentences(10000)))
+			testFile.Close()
+			// <-ch
+		}(filepath.Join(tmpFilesPath, fmt.Sprint(i)+"-tmpfile.txt"))
 	}
 
-	// Check file exist
-	_, err = os.Stat(destZipName)
-	if os.IsNotExist(err) {
-		t.Errorf("Zip does not exist at \"%v\"\n", destZipName)
+	// Create zip Test
+	if err = crateZips(tmpFilesPath, 3000000); err != nil {
+		t.Error("Error creating zip from path", tmpFilesPath, ": ", err)
 	}
 
-	// Remove tmpFile and created zip file
-	if err = os.RemoveAll(tmpFilePath); err != nil {
-		t.Errorf("Error removing file: \"%v\"\n", tmpFilePath)
-	}
-	if err = os.RemoveAll(destZipName); err != nil {
-		t.Errorf("Error removing file: \"%v\"\n", destZipName)
-	}
-}
-
-func TestCopyFile(t *testing.T) {
-	// Create tempdir
-	tempDir1, err := ioutil.TempDir("", "tmp-")
-	if err != nil {
-		t.Errorf("Error while creating tempDir1: %v", err)
-	}
+	// Remove tmp files, not zips
 	defer func() {
-		if err := os.RemoveAll(tempDir1); err != nil {
-			t.Errorf("Error removing file: \"%v\"\n", tempDir1)
-		}
-	}()
-	tmpFileName := "zippertest.txt"
-	tmpFilePath := filepath.Join(tempDir1, tmpFileName)
-
-	tempDir2, err := ioutil.TempDir("", "tmp-")
-	if err != nil {
-		t.Errorf("Error while creating tempDir2: %v", err)
-	}
-	defer func() {
-		if err := os.RemoveAll(tempDir2); err != nil {
-			t.Errorf("Error removing file: \"%v\"\n", tempDir2)
+		if err = os.RemoveAll(testDir); err != nil {
+			t.Error("Error removing ", tmpFilesPath, ":", err)
 		}
 	}()
 
-	// Create file
-	testFile, err := os.Create(tmpFilePath)
-	if err != nil {
-		t.Errorf("Error while creating file at \"%v\": %v\n",
-			tmpFilePath, err)
+	// Extract files
+	extractedZips := filepath.Join(pwd, "extractedzips")
+	if err = os.MkdirAll(extractedZips, 0777); err != nil {
+		t.Error("Error creating ", extractedZips, " dir:", err)
 	}
-	testFile.Write([]byte(loremipsum.New().Sentences(10000)))
-	testFile.Close()
+	if err = filepath.Walk(pwd,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if filepath.Ext(info.Name()) == ".zip" {
+				if err = Unarchive(filepath.Join(pwd, info.Name()), extractedZips); err != nil {
+					t.Error("Error while Unarchiving", info.Name(), ":", err)
+				}
+				if err = os.Remove(filepath.Join(pwd, info.Name())); err != nil {
+					t.Error("Error while removing ", filepath.Join(pwd, info.Name()), ":", err)
+				}
+			}
+			return nil
+		}); err != nil {
+		t.Error("Error while walking through", pwd, ":", err)
+	}
 
-	// Copy tmpFile to tempDir2
-	err = copy(tmpFilePath, filepath.Join(tempDir2, tmpFileName))
-	if err != nil {
-		t.Errorf("Cannot copy \"%v\" to \"%v\"\n",
-			tmpFilePath, filepath.Join(tempDir2, tmpFileName))
+	// Count should be equal to no of files created
+	count := 0
+	if err = filepath.Walk(extractedZips,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if filepath.Ext(info.Name()) == ".txt" {
+				count++
+			}
+			return nil
+		}); err != nil {
+		t.Error("Error while walking through", extractedZips, ":", err)
 	}
-
-	// Check file exist
-	_, err = os.Stat(filepath.Join(tempDir2, tmpFileName))
-	if os.IsNotExist(err) {
-		t.Errorf("file does not exist at \"%v\"\n",
-			filepath.Join(tempDir2, tmpFileName))
-	}
+	// Remove extracted files
+	defer func() {
+		if err = os.RemoveAll(extractedZips); err != nil {
+			t.Error("Error removing ", extractedZips, ":", err)
+		}
+	}()
+	assert.Equal(t, count, noOfTmpFiles, "Extracted files are ", fmt.Sprint(count), " and No of temp files are", noOfTmpFiles)
 }

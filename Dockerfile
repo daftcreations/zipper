@@ -1,45 +1,65 @@
-ARG GO_VERSION=1.17
+# syntax=docker/dockerfile:1.3
 
 FROM --platform=$BUILDPLATFORM crazymax/goreleaser-xx:latest AS goreleaser-xx
+FROM --platform=$BUILDPLATFORM pratikimprowise/upx:3.96 AS upx
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS base
 COPY --from=goreleaser-xx / /
 ENV CGO_ENABLED=0
-RUN apk add --no-cache git
+ENV GO111MODULE=on
+RUN apk --update add --no-cache git
 WORKDIR /src
 
 FROM base AS vendored
-RUN --mount=type=bind,source=.,target=/src,rw \
+RUN --mount=type=bind,target=.,rw \
   --mount=type=cache,target=/go/pkg/mod \
   go mod tidy && go mod download
 
-FROM vendored AS zipper
+## bin
+FROM vendored AS bin
 ARG TARGETPLATFORM
 RUN --mount=type=bind,source=.,target=/src,rw \
   --mount=type=cache,target=/root/.cache \
   --mount=type=cache,target=/go/pkg/mod \
   goreleaser-xx --debug \
-    --name "zipper" \
-    --ldflags="-s -w" \
-    --flags="-trimpath" \
-    --dist "/out" \
-    --main="cmd/zipper/" \
-    --files="LICENSE" \
-    --files="README.md"
+    --name="zipper" \
+    --main="./cmd/zipper" \
+    --dist="/out" \
+    --artifacts="bin" \
+    --artifacts="archive" \
+    --snapshot="no"
 
-FROM vendored AS resizer
+## Slim bin
+FROM vendored AS bin-slim
+COPY --from=upx / /
 ARG TARGETPLATFORM
 RUN --mount=type=bind,source=.,target=/src,rw \
   --mount=type=cache,target=/root/.cache \
   --mount=type=cache,target=/go/pkg/mod \
   goreleaser-xx --debug \
-    --name "resizer" \
-    --ldflags="-s -w" \
+    --name="zipper-slim" \
     --flags="-trimpath" \
-    --dist "/out" \
-    --main="cmd/resizer/" \
-    --files="LICENSE" \
-    --files="README.md"
+    --ldflags="-s -w" \
+    --main="./cmd/zipper" \
+    --dist="/out" \
+    --artifacts="bin" \
+    --artifacts="archive" \
+    --snapshot="no" \
+    --post-hooks="upx -v --ultra-brute --best -o /usr/local/bin/{{ .ProjectName }}{{ .Ext }}"
 
-FROM scratch AS artifacts
-COPY --from=zipper /out/*.tar.gz /out/*.zip  /
-COPY --from=resizer /out/*.tar.gz /out/*.zip  /
+## get binary out
+### non slim binary
+FROM scratch AS artifact
+COPY --from=bin /out /
+###
+
+### slim binary
+FROM scratch AS artifact-slim
+COPY --from=bin-slim /out /
+###
+
+### All binaries
+FROM scratch AS artifact-all
+COPY --from=bin /out /
+COPY --from=bin-slim /out /
+###
+##

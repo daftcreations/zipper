@@ -18,6 +18,34 @@ zipper <(Optional) size> <(Optional) target>
 - (Optional) target: folder/directory which going to compress it will ask you in
 prompt it you won't add target in args
 
+## Local
+
+> Create docker buildx builder if using first time
+> ```docker buildx create --use```
+
+```shell
+git clone --depth 1 https://github.com/pratikbalar/zipper.git zipper
+cd zipper
+
+## Get local zipper
+docker buildx bake
+
+## Get local slim zipper
+docker buildx bake artifact-slim
+
+## Build local image
+docker buildx bake image
+
+## Build local slim image
+docker buildx bake image-slim
+
+## Build multi-platform image
+docker buildx bake image-all
+
+## Build multi-platform slim image
+docker buildx bake image-all-slim
+```
+
 ## To-Do
 
 - [x] Don't change source dir name

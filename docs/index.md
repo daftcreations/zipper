@@ -68,13 +68,12 @@ Container image available for fllowing architecture
 	- arm64
 	- ppc64le
 
-
 1. Go to folder/directory you want to zip
 
 2. Now run
 
 ```bash
-docker run -v $(pwd):/zip -it pratikimprowised/zipper 3000 /zip/test
+docker run -v $(pwd):/zip -it pratikimprowise/zipper 3000 /zip/test
 ```
 
 > Binaries available in container are `upx`ed, more about upx [here](https://github.com/upx/upx)

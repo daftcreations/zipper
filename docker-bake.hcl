@@ -3,7 +3,7 @@ variable "GO_VERSION" {
 }
 
 variable "REPO" {
-  default = "im2nguyen/rover"
+  default = "pratikbalar/zipper"
 }
 
 variable "VERSION" {
@@ -25,9 +25,8 @@ variable "TAGS" {
 variable "TAGS_SLIM" {
   default = [
     "${REPO}:slim",
-    "${REPO}:slim-latest",
-    "${REPO}:slim-${VERSION}",
-    "${REPO}:slim-${VERSION}-${GIT_SHA}"
+    "${REPO}:${VERSION}-slim",
+    "${REPO}:${VERSION}-${GIT_SHA}-slim"
   ]
 }
 
@@ -109,7 +108,7 @@ group "default" {
 }
 
 # # Creating fat container image for local docker
-# target "image-local" {
+# target "image" {
 #   inherits = ["_common", "_fat", "_labels"]
 #   output   = ["type=docker"]
 # }
@@ -127,7 +126,7 @@ group "default" {
 # }
 
 # # Creating slim container image for all platforms
-# target "image-slim-all" {
+# target "image-all-slim" {
 #   inherits = ["_common", "image-platform", "_slim", "_labels"]
 #   target   = "slim"
 # }

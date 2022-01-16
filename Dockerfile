@@ -5,7 +5,7 @@ FROM --platform=$BUILDPLATFORM pratikimprowise/upx:3.96 AS upx
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS base
 COPY --from=goreleaser-xx / /
 ENV CGO_ENABLED=0
-ENV GO111MODULE=on
+ENV GO111MODULE=auto
 RUN apk --update add --no-cache git
 WORKDIR /src
 
@@ -44,7 +44,7 @@ RUN --mount=type=bind,source=.,target=/src,rw \
     --artifacts="bin" \
     --artifacts="archive" \
     --snapshot="no" \
-    --post-hooks="upx -v --ultra-brute --best -o /usr/local/bin/{{ .ProjectName }}{{ .Ext }}"
+    --post-hooks="sh -c 'upx -v --ultra-brute --best -o /usr/local/bin/{{ .ProjectName }}{{ .Ext }} || true'"
 
 ## get binary out
 ### non slim binary

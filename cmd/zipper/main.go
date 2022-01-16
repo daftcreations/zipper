@@ -77,7 +77,6 @@ func crateZips(dirPath string, zipSplitSize int) error {
 			return nil
 		})
 	if err != nil {
-		log.Println(err)
 		return fmt.Errorf("Error walking through path: %v", err)
 	}
 
@@ -135,7 +134,8 @@ func crateZips(dirPath string, zipSplitSize int) error {
 			wg.Wait()
 			wg.Add(1)
 			go func(filesList []string, dest string) {
-				fmt.Println("PASS", fmt.Sprint(count), ": Creating", filepath.Join(dirPath, dest), ": -----------------------------")
+				fmt.Println("PASS", fmt.Sprint(count), ": Creating",
+					filepath.Join(dirPath, dest), ": -----------------------------")
 				if err := Archive(filesList, dest); err != nil {
 					log.Fatal(err)
 				}

@@ -17,7 +17,7 @@ import (
 func TestE2E(t *testing.T) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	// ch := make(chan struct{}, runtime.NumCPU())
-	noOfTmpFiles := 20
+	noOfTmpFiles := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(50)
 
 	// Create temp dir for creating test files
 	pwd, err := os.Getwd()

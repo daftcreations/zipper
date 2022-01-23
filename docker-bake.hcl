@@ -107,6 +107,11 @@ group "default" {
   targets = ["artifact"]
 }
 
+# test
+target "test" {
+  inherits = ["_common", "image-platform", ]
+}
+
 # # Creating fat container image for local docker
 # target "image" {
 #   inherits = ["_common", "_fat", "_labels"]

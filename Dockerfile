@@ -14,6 +14,10 @@ RUN --mount=type=bind,target=.,rw \
   --mount=type=cache,target=/go/pkg/mod \
   go mod tidy && go mod download
 
+FROM vendored as test
+RUN go test -v ./..
+RUN go test -v race ./...
+
 ## bin
 FROM vendored AS bin
 ARG TARGETPLATFORM

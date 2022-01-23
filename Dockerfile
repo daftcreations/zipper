@@ -16,6 +16,7 @@ RUN --mount=type=bind,target=.,rw \
   go mod tidy && go mod download
 
 FROM vendored as test
+COPY . .
 RUN go test -v ./..
 RUN go test -v race ./...
 

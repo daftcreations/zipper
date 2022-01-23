@@ -110,7 +110,7 @@ group "default" {
 # test
 target "test" {
   inherits = ["_common", "image-platform"]
-  target   = test
+  target   = "test"
 }
 
 # # Creating fat container image for local docker

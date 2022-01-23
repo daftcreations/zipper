@@ -34,7 +34,7 @@ jobs:
           go test ./...
           go test -race ./...
 
-      - name: Setupq QEMU
+      - name: Setup QEMU
         if: matrix.os == 'ubuntu-latest'
         uses: docker/setup-qemu-action@v1
 

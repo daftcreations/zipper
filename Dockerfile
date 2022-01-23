@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1.3
+ARG GO_VERSION=1.17
 
 FROM --platform=$BUILDPLATFORM crazymax/goreleaser-xx:latest AS goreleaser-xx
 FROM --platform=$BUILDPLATFORM pratikimprowise/upx:3.96 AS upx

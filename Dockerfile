@@ -70,5 +70,6 @@ FROM vendored as test
 ENV CGO_ENABLED=1
 COPY . .
 ARG TARGETPLATFORM
+RUN apk --update add --no-cache gcc
 RUN go test -v ./...
 RUN go test -v -race ./...

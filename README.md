@@ -11,11 +11,11 @@
 ## Usage
 
 ```bash
-zipper <(Optional) size> <(Optional) target>
+zipper <size> <target>
 ```
 
-- (Optional) Size in KB. Default 3000 which is 3MB, e.g. `zipper 3000`
-- (Optional) target: folder/directory which going to compress it will ask you in
+- Size in KB. Default 3000 which is 3MB, e.g. `zipper 3000`
+- target: folder/directory which going to compress it will ask you in
 prompt it you won't add target in args
 
 ## Local

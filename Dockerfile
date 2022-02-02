@@ -69,5 +69,5 @@ COPY --from=bin-slim /out /
 FROM vendored as test
 COPY . .
 ARG TARGETPLATFORM
-RUN go test -v ./..
+RUN go test -v ./...
 RUN go test -v race ./...

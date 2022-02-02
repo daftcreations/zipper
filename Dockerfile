@@ -5,7 +5,6 @@ FROM --platform=$BUILDPLATFORM crazymax/goreleaser-xx:latest AS goreleaser-xx
 FROM --platform=$BUILDPLATFORM pratikimprowise/upx:3.96 AS upx
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS base
 COPY --from=goreleaser-xx / /
-ENV CGO_ENABLED=0
 ENV GO111MODULE=auto
 RUN apk --update add --no-cache git
 WORKDIR /src
@@ -17,6 +16,7 @@ RUN --mount=type=bind,target=.,rw \
 
 ## bin
 FROM vendored AS bin
+ENV CGO_ENABLED=0
 ARG TARGETPLATFORM
 RUN --mount=type=bind,source=.,target=/src,rw \
   --mount=type=cache,target=/root/.cache \
@@ -31,6 +31,7 @@ RUN --mount=type=bind,source=.,target=/src,rw \
 
 ## Slim bin
 FROM vendored AS bin-slim
+ENV CGO_ENABLED=0
 COPY --from=upx / /
 ARG TARGETPLATFORM
 RUN --mount=type=bind,source=.,target=/src,rw \
@@ -67,7 +68,6 @@ COPY --from=bin-slim /out /
 
 ### Testing
 FROM vendored as test
-ENV CGO_ENABLED=1
 COPY . .
 ARG TARGETPLATFORM
 RUN apk --update add --no-cache gcc

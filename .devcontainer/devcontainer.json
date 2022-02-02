@@ -1,0 +1,79 @@
+{
+  "name": "zipper",
+  "service": "vscode",
+  "dockerComposeFile": [
+    "docker-compose.yml"
+  ],
+  "runServices": [
+    "vscode"
+  ],
+  "shutdownAction": "stopCompose",
+  "postCreateCommand": "~/.windows.sh && go mod download && go mod tidy",
+  "workspaceFolder": "/workspace",
+  "extensions": [
+    "golang.go",
+    "eamodio.gitlens",
+    "davidanson.vscode-markdownlint",
+    "ms-azuretools.vscode-docker",
+    "shardulm94.trailing-spaces",
+    "Gruntfuggly.todo-tree",
+    "bierner.emojisense",
+    "stkb.rewrap",
+    "vscode-icons-team.vscode-icons",
+    "github.vscode-pull-request-github",
+    "redhat.vscode-yaml",
+    "bajdzis.vscode-database",
+    "IBM.output-colorizer",
+  ],
+  "settings": {
+    "files.eol": "\n",
+    "remote.extensionKind": {
+      "ms-azuretools.vscode-docker": "workspace"
+    },
+    "editor.codeActionsOnSaveTimeout": 3000,
+    "go.useLanguageServer": true,
+    "[go]": {
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": true,
+      },
+      "editor.snippetSuggestions": "none"
+    },
+    "[go.mod]": {
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": true,
+      },
+    },
+    "gopls": {
+      "usePlaceholders": false,
+      "staticcheck": true
+    },
+    "go.autocompleteUnimportedPackages": true,
+    "go.gotoSymbol.includeImports": true,
+    "go.gotoSymbol.includeGoroot": true,
+    "go.lintTool": "golangci-lint",
+    "go.buildOnSave": "workspace",
+    "go.lintOnSave": "workspace",
+    "go.vetOnSave": "workspace",
+    "editor.formatOnSave": true,
+    "go.toolsEnvVars": {
+      "GOFLAGS": "-tags=",
+      "CGO_ENABLED": 0
+    },
+    "gopls.env": {
+      "GOFLAGS": "-tags="
+    },
+    "go.testEnvVars": {
+      "": "",
+    },
+    "go.testFlags": [
+      "-v",
+      "-race"
+    ],
+    "go.testTimeout": "10s",
+    "go.coverOnSingleTest": true,
+    "go.coverOnSingleTestFile": true,
+    "go.coverOnTestPackage": true
+  }
+}

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -17,7 +16,8 @@ import (
 func TestE2E(t *testing.T) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	// ch := make(chan struct{}, runtime.NumCPU())
-	noOfTmpFiles := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(50)
+	// noOfTmpFiles := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(50)
+	noOfTmpFiles := 20
 
 	// Create temp dir for creating test files
 	pwd, err := os.Getwd()
@@ -39,7 +39,8 @@ func TestE2E(t *testing.T) {
 			if err != nil {
 				t.Error("Error while creating file at ", tmpFileName, " :", err)
 			}
-			testFile.Write([]byte(loremipsum.New().Sentences(rand.New(rand.NewSource(time.Now().UnixNano())).Intn(10000))))
+			testFile.Write([]byte(loremipsum.New().Sentences(10000)))
+			// testFile.Write([]byte(loremipsum.New().Sentences(rand.New(rand.NewSource(time.Now().UnixNano())).Intn(10000))))
 			testFile.Close()
 			// <-ch
 		}(filepath.Join(tmpFilesPath, fmt.Sprint(i)+"-tmpfile.txt"))

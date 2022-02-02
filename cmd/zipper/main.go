@@ -133,14 +133,16 @@ func crateZips(dirPath string, zipSplitSize int) error {
 		if fileStat.Size() > int64(zipSplitSize) || k == len(newFiless)-1 {
 			wg.Wait()
 			wg.Add(1)
-			go func(filesList []string, dest string) {
+			zipFileList := filesList[:len(filesList)-1]
+			zipDest := fmt.Sprintf("%s-%s.zip", filepath.Base(dirPath), fmt.Sprint(count))
+			go func(filesList []string, dest string, wg *sync.WaitGroup, count int) {
 				fmt.Println("PASS", fmt.Sprint(count), ": Creating",
 					filepath.Join(dirPath, dest), ": -----------------------------")
 				if err := Archive(filesList, dest); err != nil {
 					log.Fatal(err)
 				}
 				wg.Done()
-			}(filesList[:len(filesList)-1], filepath.Base(dirPath)+"-"+fmt.Sprint(count)+".zip")
+			}(zipFileList, zipDest, &wg, count)
 
 			// log.Println("Cretain zip of ", filesList)
 			lastFile := filesList[len(filesList)-1]
@@ -150,7 +152,7 @@ func crateZips(dirPath string, zipSplitSize int) error {
 			count++
 		}
 		// log.Println("filesList", filesList)
-		wg.Wait()
 	}
+	wg.Wait()
 	return nil
 }

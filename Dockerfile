@@ -15,11 +15,6 @@ RUN --mount=type=bind,target=.,rw \
   --mount=type=cache,target=/go/pkg/mod \
   go mod tidy && go mod download
 
-FROM vendored as test
-COPY . .
-RUN go test -v ./..
-RUN go test -v race ./...
-
 ## bin
 FROM vendored AS bin
 ARG TARGETPLATFORM
@@ -50,7 +45,7 @@ RUN --mount=type=bind,source=.,target=/src,rw \
     --artifacts="bin" \
     --artifacts="archive" \
     --snapshot="no" \
-    --post-hooks="sh -c 'upx -v --ultra-brute --best -o /usr/local/bin/{{ .ProjectName }}{{ .Ext }} || true'"
+    --post-hooks="upx -v --ultra-brute --best -o /usr/local/bin/{{ .ProjectName }}{{ .Ext }}"
 
 ## get binary out
 ### non slim binary
@@ -69,3 +64,10 @@ COPY --from=bin /out /
 COPY --from=bin-slim /out /
 ###
 ##
+
+### Testing
+FROM vendored as test
+COPY . .
+ARG TARGETPLATFORM
+RUN go test -v ./..
+RUN go test -v race ./...

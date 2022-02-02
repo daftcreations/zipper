@@ -67,6 +67,7 @@ COPY --from=bin-slim /out /
 
 ### Testing
 FROM vendored as test
+ENV CGO_ENABLED=1
 COPY . .
 ARG TARGETPLATFORM
 RUN go test -v ./...

@@ -5,6 +5,7 @@ FROM --platform=$BUILDPLATFORM crazymax/goreleaser-xx:latest AS goreleaser-xx
 FROM --platform=$BUILDPLATFORM pratikimprowise/upx:3.96 AS upx
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS base
 COPY --from=goreleaser-xx / /
+ENV CGO_ENABLED=0
 ENV GO111MODULE=auto
 RUN apk --update add --no-cache git
 WORKDIR /src
@@ -16,7 +17,6 @@ RUN --mount=type=bind,target=.,rw \
 
 ## bin
 FROM vendored AS bin
-ENV CGO_ENABLED=0
 ARG TARGETPLATFORM
 RUN --mount=type=bind,source=.,target=/src,rw \
   --mount=type=cache,target=/root/.cache \
@@ -31,7 +31,6 @@ RUN --mount=type=bind,source=.,target=/src,rw \
 
 ## Slim bin
 FROM vendored AS bin-slim
-ENV CGO_ENABLED=0
 COPY --from=upx / /
 ARG TARGETPLATFORM
 RUN --mount=type=bind,source=.,target=/src,rw \
@@ -46,7 +45,7 @@ RUN --mount=type=bind,source=.,target=/src,rw \
     --artifacts="bin" \
     --artifacts="archive" \
     --snapshot="no" \
-    --post-hooks="upx -v --ultra-brute --best -o /usr/local/bin/{{ .ProjectName }}{{ .Ext }}"
+    --post-hooks="sh -c 'upx -v --ultra-brute --best -o /usr/local/bin/{{ .ProjectName }}{{ .Ext }} || true'"
 
 ## get binary out
 ### non slim binary
@@ -65,11 +64,3 @@ COPY --from=bin /out /
 COPY --from=bin-slim /out /
 ###
 ##
-
-### Testing
-FROM vendored as test
-COPY . .
-ARG TARGETPLATFORM
-RUN apk --update add --no-cache gcc
-RUN CGO_ENABLED=0 go test -v ./...
-RUN go test -v -race ./...

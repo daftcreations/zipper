@@ -33,7 +33,7 @@ variable "TAGS_SLIM" {
 
 target "_common" {
   args = {
-    GO_VERSION   = GO_VERSION
+    GO_VERSION = GO_VERSION
   }
 }
 
@@ -105,6 +105,12 @@ target "bin-platform" {
 
 group "default" {
   targets = ["artifact"]
+}
+
+# test
+target "test" {
+  inherits = ["_common", "image-platform"]
+  target   = "test"
 }
 
 # # Creating fat container image for local docker

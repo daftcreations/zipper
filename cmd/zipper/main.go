@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	. "github.com/mholt/archiver/v3"
+	"github.com/pkg/profile"
 )
 
 var wg sync.WaitGroup
@@ -23,22 +24,32 @@ type filess struct {
 var (
 	newFiless         []filess
 	compressFilesList []string
-	pathPostFix       string = "/"
+	osPathSuffix      string = "/"
 	pwd               string
+	profEnable        string = "false"
+	count             int    = 1
+	filesList         []string
+	tmpZipSplitSize   int
 )
 
 func main() {
-	var (
-		err             error
-		tmpZipSplitSize int
-	)
+	var err error
+
+	// dir, err := ioutil.TempDir("dir", "prof")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	if profEnable == "true" {
+		defer profile.Start(profile.ProfilePath("."), profile.MemProfile, profile.MemProfileRate(1), profile.CPUProfile, profile.TraceProfile).Stop()
+	}
 
 	// This utility will mostly run on low power CPUs so
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Set path postfix as per OS
 	if runtime.GOOS == `windows` {
-		pathPostFix = `\`
+		osPathSuffix = `\`
 	}
 	// For zip size
 	if len(os.Args) >= 2 {
@@ -54,7 +65,7 @@ func main() {
 
 	// Trim ending linux and mac `/` or in windows `\` from path
 	if err := crateZips(
-		strings.TrimRight(os.Args[2], pathPostFix), zipSplitSize); err != nil {
+		strings.TrimRight(os.Args[2], osPathSuffix), zipSplitSize); err != nil {
 		log.Fatal("Error creating zip: ", err)
 	}
 }
@@ -72,7 +83,7 @@ func crateZips(dirPath string, zipSplitSize int) error {
 
 			// Exit if any file is more then zipSplitSize
 			if info.Size() > int64(zipSplitSize) {
-				return fmt.Errorf("\"%v\" is more then %vKB\n", info.Name(), zipSplitSize)
+				return fmt.Errorf("\"%v\" is more then %vKB\n", info.Name(), zipSplitSize/1000)
 			}
 			return nil
 		})
@@ -106,10 +117,6 @@ func crateZips(dirPath string, zipSplitSize int) error {
 		}
 	}
 
-	var (
-		count     int = 1
-		filesList []string
-	)
 	// ch := make(chan struct{}, runtime.NumCPU())
 
 	for k, v := range newFiless {
@@ -126,21 +133,25 @@ func crateZips(dirPath string, zipSplitSize int) error {
 		if err != nil {
 			return fmt.Errorf("Error getting file info of tmpzip file: %v", err)
 		}
-		if err = os.RemoveAll(tmpZipPath); err != nil {
-			return fmt.Errorf("Error removing temp zipfile: %v", err)
-		}
+		go func() {
+			if err = os.RemoveAll(tmpZipPath); err != nil {
+				log.Println(fmt.Errorf("Error removing temp zipfile: %v", err))
+			}
+		}()
 
 		if fileStat.Size() > int64(zipSplitSize) || k == len(newFiless)-1 {
 			wg.Wait()
 			wg.Add(1)
-			go func(filesList []string, dest string) {
+			zipFileList := filesList[:len(filesList)-1]
+			zipDest := fmt.Sprintf("%s-%s.zip", filepath.Base(dirPath), fmt.Sprint(count))
+			go func(filesList []string, dest string, wg *sync.WaitGroup, count int) {
 				fmt.Println("PASS", fmt.Sprint(count), ": Creating",
 					filepath.Join(dirPath, dest), ": -----------------------------")
 				if err := Archive(filesList, dest); err != nil {
 					log.Fatal(err)
 				}
 				wg.Done()
-			}(filesList[:len(filesList)-1], filepath.Base(dirPath)+"-"+fmt.Sprint(count)+".zip")
+			}(zipFileList, zipDest, &wg, count)
 
 			// log.Println("Cretain zip of ", filesList)
 			lastFile := filesList[len(filesList)-1]
@@ -150,7 +161,7 @@ func crateZips(dirPath string, zipSplitSize int) error {
 			count++
 		}
 		// log.Println("filesList", filesList)
-		wg.Wait()
 	}
+	wg.Wait()
 	return nil
 }

@@ -10,6 +10,7 @@ import (
 
 	. "github.com/mholt/archiver/v3"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/goleak"
 	"gopkg.in/loremipsum.v1"
 )
 
@@ -50,6 +51,9 @@ func TestE2E(t *testing.T) {
 	if err = crateZips(tmpFilesPath, 3000000); err != nil {
 		t.Error("Error creating zip from path", tmpFilesPath, ": ", err)
 	}
+
+	// Check goroutine leak test
+	goleak.VerifyNone(t)
 
 	// Remove tmp files, not zips
 	defer func() {

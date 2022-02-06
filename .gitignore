@@ -20,3 +20,6 @@ cover.html
 cmd/test
 cmd/zipper/test*
 vendor
+**.pprof
+zipper
+zipper.exe

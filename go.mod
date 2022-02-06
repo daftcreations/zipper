@@ -24,6 +24,8 @@ require (
 require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/mholt/archiver/v3 v3.5.1
+	github.com/pkg/profile v1.6.0
 	github.com/stretchr/testify v1.7.0
+	go.uber.org/goleak v1.1.12
 	gopkg.in/loremipsum.v1 v1.1.0
 )

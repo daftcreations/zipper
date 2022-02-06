@@ -60,4 +60,33 @@ docker buildx bake image-all-slim
   - [x] e2e
 - [ ] **README** Badges
 
+## Debug
+
+```shell
+go build -ldflags="-X main.profEnable=true" ./cmd/zipper/
+./zipper 10000 /home/pratik/workspace/pratikbalar/zipper/test
+```
+
+### CPU and Memory profiling
+
+```shell
+go tool pprof -http=:8080 mem.pprof
+```
+
+<!-- **OR** -->
+<!--
+```shell
+go test -cpuprofile cpu.prof -memprofile mem.prof -bench ./cmd/zipper/
+``` -->
+
+### Tracing
+
+```shell
+go tool trace trace.out
+```
+
 > <div>Icons made by <a href="https://www.freepik.com" **title**="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+
+---
+
+**May the source be with you**

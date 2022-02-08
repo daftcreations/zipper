@@ -136,32 +136,25 @@ func crateZips(dirPath string, zipSplitSize int) error {
 			if !queue.Empty() {
 				queue.Enqueue(singleFile)
 			}
+			zipDest := fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count)
+			zipFileList := filesList[:len(filesList)-1]
 			if queue.Size() == 0 {
 				wg.Add(1)
-				go makeArchive(filesList, fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count), buf, &wg, count)
-				// wg.Wait()
+				go makeArchive(filesList, zipDest, buf, &wg, count)
 				break
 			}
 			fmt.Println("Queue size", queue.Size())
 
-			// wg.Wait()
 			wg.Add(1)
-			zipDest := fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count)
-			zipFileList := filesList[:len(filesList)-1]
+
 			go makeArchive(zipFileList, zipDest, buf, &wg, count)
-			// wg.Wait()
 
 			filesList = []string{}
 			totalBytes = 0
-			// buf.Reset()
-			// if err = zipWriter.Flush(); err != nil {
-			// 	log.Fatal(err)
-			// }
 			count++
 		}
 	}
 
-	// buf.Reset()
 	wg.Wait()
 	return nil
 }
@@ -172,12 +165,5 @@ func makeArchive(zipFileList []string, dest string, buf bytes.Buffer, wg *sync.W
 	if err := Archive(zipFileList, dest); err != nil {
 		log.Fatal(err)
 	}
-
-	// if err = zipWriter.Close(); err != nil {
-	// 	log.Fatal(err)
-	// }
-	// ioutil.WriteFile(zipDest, buf.Bytes(), 0777)
-	// buf = *new(bytes.Buffer)
-	// zipWriter = zip.NewWriter(&buf)
 	wg.Done()
 }

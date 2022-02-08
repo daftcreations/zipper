@@ -22,7 +22,6 @@
     "vscode-icons-team.vscode-icons",
     "github.vscode-pull-request-github",
     "redhat.vscode-yaml",
-    "bajdzis.vscode-database",
     "IBM.output-colorizer",
   ],
   "settings": {

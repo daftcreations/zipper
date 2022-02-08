@@ -19,7 +19,6 @@ dist/
 cover.html
 cmd/test
 cmd/zipper/test*
+cmd/zipper/zipper*
 vendor
-**.pprof
-zipper
-zipper.exe
+**.(pprof|prof)

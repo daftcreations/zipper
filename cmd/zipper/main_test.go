@@ -40,7 +40,7 @@ func TestE2E(t *testing.T) {
 			if err != nil {
 				t.Error("Error while creating file at ", tmpFileName, " :", err)
 			}
-			testFile.Write([]byte(loremipsum.New().Sentences(10000)))
+			testFile.Write([]byte(loremipsum.New().Sentences(4000)))
 			// testFile.Write([]byte(loremipsum.New().Sentences(rand.New(rand.NewSource(time.Now().UnixNano())).Intn(10000))))
 			testFile.Close()
 			// <-ch

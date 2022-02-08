@@ -48,6 +48,8 @@ docker buildx bake image-all-slim
 
 ## To-Do
 
+- [ ] Use buffer for file writing
+- [ ] Add structured logging `<TYPE>: <TIME> :`
 - [x] Don't change source dir name
 - [x] Add dirname in created zip
 - [x] Configure size of zip from ~~env~~ cli

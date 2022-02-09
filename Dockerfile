@@ -47,6 +47,16 @@ RUN --mount=type=bind,source=.,target=/src,rw \
     --snapshot="no" \
     --post-hooks="sh -c 'upx -v --ultra-brute --best -o /usr/local/bin/{{ .ProjectName }}{{ .Ext }} || true'"
 
+## standard
+FROM scratch AS standard
+COPY --from=bin /usr/local/bin/zipper /usr/local/bin/zipper
+ENTRYPOINT [ "/usr/local/bin/zipper" ]
+
+## Slim
+FROM scratch AS slim
+COPY --from=bin-slim /usr/local/bin/zipper-slim /usr/local/bin/zipper
+ENTRYPOINT [ "/usr/local/bin/zipper" ]
+
 ## get binary out
 ### non slim binary
 FROM scratch AS artifact

@@ -21,4 +21,8 @@ cmd/test
 cmd/zipper/test*
 cmd/zipper/zipper*
 vendor
-**.(pprof|prof)
+mem.prof
+mem.pprof
+cpu.prof
+cpu.pprof
+trace.out

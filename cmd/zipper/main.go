@@ -110,25 +110,29 @@ func crateZips(dirPath string, zipSplitSize int) error {
 
 		zipFile, err := zipWriter.Create(filepath.Base(singleFile))
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		fileBody, err := os.ReadFile(singleFile)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		zippedFileSize, err := zipFile.Write(fileBody)
 		if err != nil {
-			log.Fatal(err)
+			return err
+		}
+		buf.Reset()
+		if err = zipWriter.Flush(); err != nil {
+			return err
 		}
 
 		fmt.Printf("total := %v, Bytes:= %v, zipSplitSize:= %v\n",
 			totalBytes, zippedFileSize, zipSplitSize)
 
 		totalBytes += zippedFileSize
-		fmt.Println("Queue size", queue.Size())
+		// fmt.Println("out if: Queue size", queue.Size())
 
 		if totalBytes > zipSplitSize || queue.Empty() {
-			fmt.Println("Queue size", queue.Size())
+			// fmt.Println("in if: Queue size", queue.Size())
 			fmt.Println(
 				"Not Adding", filepath.Base(singleFile),
 				", it will incrase size of zip to", totalBytes,
@@ -137,21 +141,20 @@ func crateZips(dirPath string, zipSplitSize int) error {
 				queue.Enqueue(singleFile)
 			}
 			zipDest := fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count)
-			zipFileList := filesList[:len(filesList)-1]
 			if queue.Size() == 0 {
 				wg.Add(1)
 				go makeArchive(filesList, zipDest, buf, &wg, count)
 				break
 			}
-			fmt.Println("Queue size", queue.Size())
 
+			zipFileList := filesList[:len(filesList)-1]
 			wg.Add(1)
-
 			go makeArchive(zipFileList, zipDest, buf, &wg, count)
 
 			filesList = []string{}
 			totalBytes = 0
 			count++
+			// fmt.Println("last if: Queue size", queue.Size())
 		}
 	}
 

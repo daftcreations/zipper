@@ -55,8 +55,8 @@ target "_slim" {
   tags   = TAGS_SLIM
 }
 
-target "_fat" {
-  target = "fat"
+target "_standard" {
+  target = "standard"
   tags   = TAGS
 }
 
@@ -104,7 +104,7 @@ target "bin-platform" {
 }
 
 group "default" {
-  targets = ["artifact"]
+  targets = ["image"]
 }
 
 # test
@@ -113,31 +113,31 @@ target "test" {
   target   = "test"
 }
 
-# # Creating fat container image for local docker
-# target "image" {
-#   inherits = ["_common", "_fat", "_labels"]
-#   output   = ["type=docker"]
-# }
+# Creating standard container image for local docker
+target "image" {
+  inherits = ["_common", "_standard", "_labels"]
+  output   = ["type=docker"]
+}
 
-# # Creating slim container image for local docker
-# target "image-slim" {
-#   inherits = ["_common", "_slim", "_labels"]
-#   output   = ["type=docker"]
-# }
+# Creating slim container image for local docker
+target "image-slim" {
+  inherits = ["_common", "_slim", "_labels"]
+  output   = ["type=docker"]
+}
 
-# # Creating fat container image for all platforms
-# target "image-all" {
-#   inherits = ["_common", "image-platform", "_fat", "_labels"]
-#   target   = "fat"
-# }
+# Creating standard container image for all platforms
+target "image-all" {
+  inherits = ["_common", "image-platform", "_standard", "_labels"]
+  target   = "standard"
+}
 
-# # Creating slim container image for all platforms
-# target "image-all-slim" {
-#   inherits = ["_common", "image-platform", "_slim", "_labels"]
-#   target   = "slim"
-# }
+# Creating slim container image for all platforms
+target "image-all-slim" {
+  inherits = ["_common", "image-platform", "_slim", "_labels"]
+  target   = "slim"
+}
 
-# Creating all fat artifact for all platforms
+# Creating all standard artifact for all platforms
 target "artifact" {
   inherits = ["_common", "artifacs"]
   target   = "artifact"
@@ -151,6 +151,6 @@ target "artifact-slim" {
 
 # Creating all full, slim artifact for all platforms
 target "artifact-all" {
-  inherits = ["artifact-all", "artifacs", "bin-platform", ]
+  inherits = ["artifact-all", "artifacs", "bin-platform"]
   target   = "artifact-all"
 }

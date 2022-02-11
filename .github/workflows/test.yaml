@@ -31,7 +31,7 @@ jobs:
             ~/.cache/bazel
             ~/go/pkg/mod
           key: |
-            ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+            ${{ runner.os }}-go-${{ hashFiles('**/go.sum','**/BUILD.bazel','**/WORKSPACE' ) }}
           restore-keys: |
             ${{ runner.os }}-go-
 

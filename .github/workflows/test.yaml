@@ -20,7 +20,7 @@ jobs:
 
       - name: Use bazel
         run: |
-          echo "--jobs $(nproc)" >> .bazelrc
+          echo "--jobs=$(nproc)" >> .bazelrc
           bazel --version
 
       - uses: actions/setup-go@v2

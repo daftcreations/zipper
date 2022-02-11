@@ -28,13 +28,6 @@ load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 ############################################################
 
 go_repository(
-    name = "com_github_pratikbalar_zipper",
-    importpath = "github.com/pratikbalar/zipper",
-    sum = "h1:urbT2wsqoKGrpISyBsMb7yeyeiIAmRrtmYZV7EX1ujo=",
-    version = "v0.0.1",
-)
-
-go_repository(
     name = "com_github_andybalholm_brotli",
     importpath = "github.com/andybalholm/brotli",
     sum = "h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=",
@@ -320,6 +313,11 @@ go_repository(
     sum = "h1:gZAh5/EyT/HQwlpkCy6wTpqfH9H8Lz8zbm3dZh+OyzA=",
     version = "v1.1.12",
 )
+
+load("//:deps.bzl", "go_dependencies")
+
+# gazelle:repository_macro deps.bzl%go_dependencies
+go_dependencies()
 
 go_rules_dependencies()
 

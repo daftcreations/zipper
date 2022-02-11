@@ -35,5 +35,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - run: |
-          bazel build //cmd/zipper
+      - name: Test
+        run: |
+          bazel test //...
+
+      - name: Build
+        run: |
+          bazel build //...

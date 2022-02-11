@@ -16,6 +16,8 @@ go_binary(
     name = "zipper",
     embed = [":zipper_lib"],
     visibility = ["//visibility:public"],
+    static = "on",
+    pure = "on",
 )
 
 go_test(
@@ -40,5 +42,5 @@ go_test(
         "@in_gopkg_loremipsum_v1//:go_default_library",
         "@org_uber_go_goleak//:go_default_library",
     ],
-    race = on,
+    race = "on",
 )

@@ -19,7 +19,9 @@ jobs:
           bazel-version: '4.2.2'
 
       - name: Use bazel
-        run: bazel --version
+        run: |
+          echo "--jobs $(nproc)" >> .bazelrc
+          bazel --version
 
       - uses: actions/setup-go@v2
         with:

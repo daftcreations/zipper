@@ -4,3 +4,8 @@
 #build --remote_timeout=3600
 build --strip=always
 build --dynamic_mode=off
+build --@io_bazel_rules_go//go/config:pure
+build --jobs=HOST_CPUS
+
+test --jobs=HOST_CPUS
+test --@io_bazel_rules_go//go/config:pure

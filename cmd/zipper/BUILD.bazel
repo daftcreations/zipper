@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
     name = "zipper_lib",
@@ -6,9 +6,8 @@ go_library(
     importpath = "github.com/pratikbalar/zipper/cmd/zipper",
     visibility = ["//visibility:private"],
     deps = [
-        "@com_github_mholt_archiver_v3//:go_default_library",
-        "@com_github_oleiade_lane//:go_default_library",
-        "@com_github_pkg_profile//:go_default_library",
+        "//internal/zipper",
+        "@com_github_pkg_profile//:profile",
     ],
 )
 
@@ -16,29 +15,5 @@ go_binary(
     name = "zipper",
     embed = [":zipper_lib"],
     visibility = ["//visibility:public"],
-)
-
-go_test(
-    name = "zipper_test",
-    srcs = ["main_test.go"],
-    embed = [":zipper_lib"],
-    deps = [
-        "@com_github_mholt_archiver_v3//:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@in_gopkg_loremipsum_v1//:go_default_library",
-        "@org_uber_go_goleak//:go_default_library",
-    ],
-)
-
-go_test(
-    name = "zipper_test_race",
-    srcs = ["main_test.go"],
-    embed = [":zipper_lib"],
-    deps = [
-        "@com_github_mholt_archiver_v3//:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@in_gopkg_loremipsum_v1//:go_default_library",
-        "@org_uber_go_goleak//:go_default_library",
-    ],
-    race = "on",
+    pure = "on",
 )

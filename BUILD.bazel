@@ -1,6 +1,7 @@
 load("@bazel_gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix github.com/example/project
+# gazelle:prefix github.com/pratikbalar/zipper
+# gazelle:proto disable_global
 gazelle(name = "gazelle")
 
 gazelle(

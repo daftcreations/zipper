@@ -1,4 +1,4 @@
-package main
+package zipper
 
 import (
 	"fmt"
@@ -17,6 +17,7 @@ import (
 )
 
 func TestE2E(t *testing.T) {
+	t.Parallel()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	// noOfTmpFiles := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(50)
 	noOfTmpFiles := 20
@@ -47,12 +48,12 @@ func TestE2E(t *testing.T) {
 	}
 
 	// Create zip Test
-	if err = crateZips(tmpFilesPath, 3000000); err != nil {
+	if err = CrateZips(tmpFilesPath, 3000000); err != nil {
 		t.Error("Error creating zip from path", tmpFilesPath, ": ", err)
 	}
 
-	// Check goroutine leak test
-	goleak.VerifyNone(t)
+	// Check goroutine leak test in middle
+	// goleak.VerifyNone(t)
 
 	// Remove tmp files, not zips
 	t.Cleanup(func() {
@@ -88,7 +89,7 @@ func TestE2E(t *testing.T) {
 
 	// Count should be equal to no of files created
 	count := 0
-	noOfExtractedFiles, err := ioutil.ReadDir(extractedZips + osPathSuffix)
+	noOfExtractedFiles, err := ioutil.ReadDir(extractedZips)
 	if err != nil {
 		panic(err)
 	}

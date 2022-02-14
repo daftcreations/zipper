@@ -39,8 +39,4 @@ jobs:
 
       - name: Test
         run: |
-          bazel test //...
-
-      - name: Build
-        run: |
-          bazel build //...
+          bazel test --jobs=$(nproc) //...

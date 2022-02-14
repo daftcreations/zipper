@@ -25,6 +25,12 @@ type filess struct {
 	size int64
 }
 
+type zipTask struct {
+	zipFileList []string
+	dest        string
+	count       int
+}
+
 var (
 	newFiless       []filess
 	osPathSuffix    string = "/"
@@ -38,7 +44,11 @@ func main() {
 	var err error
 
 	if profEnable == "true" {
-		defer profile.Start(profile.ProfilePath("."), profile.MemProfile, profile.MemProfileRate(1), profile.CPUProfile, profile.TraceProfile).Stop()
+		defer profile.Start(profile.ProfilePath("."),
+			profile.MemProfile, profile.MemProfileRate(1),
+			// profile.CPUProfile,
+			// profile.TraceProfile,
+		).Stop()
 	}
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -61,6 +71,13 @@ func main() {
 }
 
 func crateZips(dirPath string, zipSplitSize int) error {
+	zipQueue := make(chan zipTask, runtime.NumCPU()*4)
+	noOfWorker := 2
+	wg.Add(noOfWorker)
+	for i := 0; i < noOfWorker; i++ {
+		go makeArchive(zipQueue)
+	}
+
 	queue := lane.NewQueue()
 
 	err := filepath.Walk(dirPath,
@@ -102,7 +119,7 @@ func crateZips(dirPath string, zipSplitSize int) error {
 	for {
 		singleFile := fmt.Sprint(queue.Dequeue())
 		filesList = append(filesList, singleFile)
-		fmt.Println("File: ", singleFile)
+		// fmt.Println("File: ", singleFile)
 
 		zipFile, err := zipWriter.Create(filepath.Base(singleFile))
 		if err != nil {
@@ -121,45 +138,58 @@ func crateZips(dirPath string, zipSplitSize int) error {
 			return err
 		}
 
-		fmt.Printf("total := %v, Bytes:= %v, zipSplitSize:= %v\n",
-			totalBytes, zippedFileSize, zipSplitSize)
-
 		totalBytes += zippedFileSize
 
 		if totalBytes > zipSplitSize || queue.Empty() {
-			fmt.Println(
-				"Not Adding", filepath.Base(singleFile),
-				", it will incrase size of zip to", totalBytes,
-				"split size", zippedFileSize)
 			if !queue.Empty() {
 				queue.Enqueue(singleFile)
 			}
-			zipDest := fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count)
 			if queue.Size() == 0 {
-				wg.Add(1)
-				go makeArchive(filesList, zipDest, buf, &wg, count)
+				zipQueue <- zipTask{
+					filesList,
+					fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count),
+					count,
+				}
+				close(zipQueue)
 				break
 			}
 
-			zipFileList := filesList[:len(filesList)-1]
-			wg.Add(1)
-			go makeArchive(zipFileList, zipDest, buf, &wg, count)
+			zipQueue <- zipTask{
+				filesList[:len(filesList)-1],
+				fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count),
+				count,
+			}
 
 			filesList = []string{}
 			totalBytes = 0
 			count++
 		}
 	}
-
+	if _, ok := <-zipQueue; ok {
+		close(zipQueue)
+	}
 	wg.Wait()
 	return nil
 }
 
-func makeArchive(zipFileList []string, dest string, buf bytes.Buffer, wg *sync.WaitGroup, count int) {
-	fmt.Println("PASS", fmt.Sprint(count), ": Creating", dest, ": -----------------------------")
-	fmt.Println("Creting archive")
-	if err := archiver.Archive(zipFileList, dest); err != nil {
-		log.Fatal(err)
+func makeArchive(zipQueue chan zipTask) {
+	for {
+		zipTask, ok := <-zipQueue
+		if ok == false {
+			wg.Done()
+			return
+		}
+		fmt.Printf("%v consuming %v\n", goid(), zipTask)
+		// fmt.Println("PASS", fmt.Sprint(count), ": Creating", zipTask.dest, ": -----------------------------")
+		// fmt.Println("Creting archive")
+		if err := archiver.Archive(zipTask.zipFileList, zipTask.dest); err != nil {
+			log.Fatal(err)
+		}
 	}
-	wg.Done()
+}
+
+func goid() int {
+	var buf [64]byte
+	id, _ := strconv.Atoi(strings.Fields(strings.TrimPrefix(string(buf[:runtime.Stack(buf[:], false)]), "goroutine "))[0])
+	return id
 }

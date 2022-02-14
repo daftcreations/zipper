@@ -16,8 +16,6 @@ go_binary(
     name = "zipper",
     embed = [":zipper_lib"],
     visibility = ["//visibility:public"],
-    static = "on",
-    pure = "on",
 )
 
 go_test(

@@ -2,3 +2,5 @@
 #build --bes_backend=grpc://localhost:1985
 #build --remote_cache=grpc://localhost:1985
 #build --remote_timeout=3600
+build --strip=always
+build --dynamic_mode=off

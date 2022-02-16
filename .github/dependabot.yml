@@ -16,3 +16,7 @@ updates:
       timezone: "Asia/Kolkata"
     labels:
       - ":robot: bot"
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"

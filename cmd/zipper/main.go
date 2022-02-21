@@ -21,13 +21,13 @@ var (
 func main() {
 	var err error
 
-	if profEnable == "true" {
-		defer profile.Start(profile.ProfilePath("."),
-			profile.MemProfile, profile.MemProfileRate(1),
-			// profile.CPUProfile,
-			// profile.TraceProfile,
-		).Stop()
-	}
+	// if profEnable == "true" {
+	defer profile.Start(profile.ProfilePath("."),
+		profile.MemProfile, profile.MemProfileRate(1),
+		// profile.CPUProfile,
+		// profile.TraceProfile,
+	).Stop()
+	// }
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 

@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"sync"
 
 	"github.com/mholt/archiver"
@@ -45,7 +44,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 
 	queue := lane.NewQueue()
 
-	err := filepath.Walk(dirPath,
+	if err := filepath.Walk(dirPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -55,28 +54,30 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 			}
 
 			if info.Size() > int64(zipSplitSize) {
-				return fmt.Errorf("\"%v\" is more then %vKB", info.Name(), zipSplitSize/1000)
+				return fmt.Errorf("\"%v\" is \"%vKB\" more then %vKB",
+					info.Name(), info.Size()/1000, zipSplitSize/1000)
 			}
 
-			newFiless = append(
-				newFiless,
-				filess{
-					filepath.Join(dirPath, info.Name()), info.Size(),
-				})
+			// newFiless = append(
+			// 	newFiless,
+			// 	filess{
+			// 		filepath.Join(dirPath, info.Name()), info.Size(),
+			// 	})
+
+			queue.Enqueue(filepath.Join(dirPath, info.Name()))
 
 			return nil
-		})
-	if err != nil {
+		}); err != nil {
 		return fmt.Errorf("error walking through path: %v", err)
 	}
 
-	sort.Slice(newFiless, func(i, j int) bool {
-		return newFiless[i].size < newFiless[j].size
-	})
+	// sort.Slice(newFiless, func(i, j int) bool {
+	// 	return newFiless[i].size < newFiless[j].size
+	// })
 
-	for _, v := range newFiless {
-		queue.Enqueue(v.name)
-	}
+	// for _, v := range newFiless {
+	// 	queue.Enqueue(v.name)
+	// }
 
 	totalBytes := 0
 	buf := *new(bytes.Buffer)
@@ -84,7 +85,6 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 	for {
 		singleFile := fmt.Sprint(queue.Dequeue())
 		filesList = append(filesList, singleFile)
-		// fmt.Println("File: ", singleFile)
 
 		zipFile, err := zipWriter.Create(filepath.Base(singleFile))
 		if err != nil {
@@ -98,10 +98,10 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 		if err != nil {
 			return err
 		}
-		buf.Reset()
-		if err = zipWriter.Flush(); err != nil {
-			return err
-		}
+		// buf.Reset()
+		// if err = zipWriter.Flush(); err != nil {
+		// 	return err
+		// }
 
 		totalBytes += zippedFileSize
 
@@ -109,7 +109,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 			if !queue.Empty() {
 				queue.Enqueue(singleFile)
 			}
-			if queue.Size() == 0 {
+			if queue.Empty() {
 				zipQueue <- zipTask{
 					filesList,
 					fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count),
@@ -145,8 +145,6 @@ func makeArchive(zipQueue chan zipTask) {
 			return
 		}
 		fmt.Printf("%v consuming %v\n", Goid(), zipTask)
-		// fmt.Println("PASS", fmt.Sprint(count), ": Creating", zipTask.dest, ": -----------------------------")
-		// fmt.Println("Creting archive")
 		if err := archiver.Archive(zipTask.zipFileList, zipTask.dest); err != nil {
 			log.Fatal(err)
 		}

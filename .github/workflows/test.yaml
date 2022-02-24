@@ -20,6 +20,8 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
+            ~/Library/Caches/go-build
+            %LocalAppData%\go-build
             ~/.cache/go-build
             ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -27,5 +29,4 @@ jobs:
             ${{ runner.os }}-go-
 
       - run: |
-          go test ./...
           go test -race ./...

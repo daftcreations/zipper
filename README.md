@@ -17,6 +17,18 @@ zipper <size> <target>
 - Size in KB. Default 3000 which is 3MB
 - target: folder/directory to compress
 
+## Tools & Technology try use
+
+- Golang
+  - Goroutines
+  - Channels
+  - Zip
+- Container
+  - [docker-bake.hcl](https://docs.docker.com/engine/reference/commandline/buildx_bake/)
+- CI/CD
+  - GitHub Actions
+  - Bazel - Used basulis
+  -
 ## Local
 
 > Create docker buildx builder if using first time
@@ -74,6 +86,9 @@ Image available for
 
 ### Testing
 
+> E2E testing will create 20 files containing upto 4000 sentence of `Lorem Ipsum` paragraph, then run createZip over it and then delete files as well as zips as
+
+
 ```shell
 go test -v ./...
 go test -v -race ./...
@@ -108,19 +123,7 @@ go tool trace trace.out
 
 ## To-Do
 
-- [ ] Use existing buffer for zip
-- [ ] Replace queue with channels
-- [ ] Create zipping worker with channels
-- [ ] Add structured logging `<TYPE>: <TIME> :`
-- [x] Check goroutine leak
-- [x] Don't change source dir name
-- [x] Configure size of zip from ~~env~~ cli
-- [x] docs: mkdocs CI
-- [x] What if photo size is less then given zip size
-- [x] Go routines to handle zipping
-- [x] Testing
-  - [x] e2e
-- [x] **README** Badges
+move to [todo.md](TODO.md)
 
 ---
 

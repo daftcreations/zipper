@@ -17,18 +17,6 @@ zipper <size> <target>
 - Size in KB. Default 3000 which is 3MB
 - target: folder/directory to compress
 
-## Tools & Technology try use
-
-- Golang
-  - Goroutines
-  - Channels
-  - Zip
-- Container
-  - [docker-bake.hcl](https://docs.docker.com/engine/reference/commandline/buildx_bake/)
-- CI/CD
-  - GitHub Actions
-  - Bazel - Used basulis
-  -
 ## Local
 
 > Create docker buildx builder if using first time

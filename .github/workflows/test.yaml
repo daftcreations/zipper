@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -31,15 +31,9 @@ jobs:
       - name: Test
         shell: bash
         run: |
-          set -x
-          if [[ "${{ runner.os }}" == "Windows" ]];
-          then export TARGET_FRONEND='///'; fi
-          bazelisk test ${TARGET_FRONEND:-'//'}...
+          bazelisk test //...
 
       - name: Build (test)
         shell: bash
         run: |
-          set -x
-          if [[ "${{ runner.os }}" == "Windows" ]];
-          then export TARGET_FRONEND='///'; fi
-          bazelisk build ${TARGET_FRONEND:-'//'}...
+          bazelisk build //...

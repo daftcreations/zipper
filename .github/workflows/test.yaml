@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -17,23 +17,16 @@ jobs:
         with:
           go-version: 1.17.x
 
-      - uses: bazelbuild/setup-bazelisk@v1
-
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.cache/bazel
-          key: |
-            ${{ runner.os }}-go-${{ hashFiles('**/go.sum','**/BUILD.bazel','**/WORKSPACE' ) }}
+            ~/Library/Caches/go-build
+            %LocalAppData%\go-build
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Test
-        shell: bash
-        run: |
-          bazelisk test //...
-
-      - name: Build (test)
-        shell: bash
-        run: |
-          bazelisk build //...
+      - run: |
+          go test -race ./...

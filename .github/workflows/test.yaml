@@ -10,8 +10,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    env:
-      os: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
 
@@ -34,12 +32,14 @@ jobs:
         shell: bash
         run: |
           set -x
-          if [[ "${{ runner.os }}" =~ "Windows*" ]]; then TARGET_FRONEND='///'; fi
+          if [[ "${{ runner.os }}" == "Windows" ]];
+          then export TARGET_FRONEND='///'; fi
           bazelisk test ${TARGET_FRONEND:-'//'}...
 
       - name: Build (test)
         shell: bash
         run: |
           set -x
-          if [[ "${{ runner.os }}" =~ "Windows*" ]]; then TARGET_FRONEND='///'; fi
+          if [[ "${{ runner.os }}" == "Windows" ]];
+          then export TARGET_FRONEND='///'; fi
           bazelisk build ${TARGET_FRONEND:-'//'}...

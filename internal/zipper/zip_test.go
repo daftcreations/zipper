@@ -3,7 +3,6 @@ package zipper
 import (
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -42,7 +41,8 @@ func TestE2E(t *testing.T) {
 				t.Error("Error while creating file at ", tmpFileName, " :", err)
 			}
 			// testFile.Write([]byte(loremipsum.New().Sentences(4000)))
-			testFile.Write([]byte(loremipsum.New().Sentences(rand.New(rand.NewSource(time.Now().UnixNano())).Intn(4000))))
+			// testFile.Write([]byte(loremipsum.New().Sentences(rand.New(rand.NewSource(time.Now().UnixNano())).Intn(4000))))
+			testFile.Write([]byte(loremipsum.New().Sentences(4000)))
 			testFile.Close()
 		}(filepath.Join(tmpFilesPath, fmt.Sprint(i)+"-tmpfile.txt"))
 	}

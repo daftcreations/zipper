@@ -74,9 +74,6 @@ Image available for
 
 ### Testing
 
-> E2E testing will create 20 files containing upto 4000 sentence of `Lorem Ipsum` paragraph, then run createZip over it and then delete files as well as zips as
-
-
 ```shell
 go test -v ./...
 go test -v -race ./...

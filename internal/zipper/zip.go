@@ -58,26 +58,12 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 					info.Name(), info.Size()/1000, zipSplitSize/1000)
 			}
 
-			// newFiless = append(
-			// 	newFiless,
-			// 	filess{
-			// 		filepath.Join(dirPath, info.Name()), info.Size(),
-			// 	})
-
 			queue.Enqueue(filepath.Join(dirPath, info.Name()))
 
 			return nil
 		}); err != nil {
 		return fmt.Errorf("error walking through path: %v", err)
 	}
-
-	// sort.Slice(newFiless, func(i, j int) bool {
-	// 	return newFiless[i].size < newFiless[j].size
-	// })
-
-	// for _, v := range newFiless {
-	// 	queue.Enqueue(v.name)
-	// }
 
 	totalBytes := 0
 	buf := *new(bytes.Buffer)
@@ -98,10 +84,10 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 		if err != nil {
 			return err
 		}
-		// buf.Reset()
-		// if err = zipWriter.Flush(); err != nil {
-		// 	return err
-		// }
+		buf.Reset()
+		if err = zipWriter.Flush(); err != nil {
+			return err
+		}
 
 		totalBytes += zippedFileSize
 

@@ -28,11 +28,11 @@ go_test(
     name = "zipper_test_race",
     srcs = ["zip_test.go"],
     embed = [":zipper"],
+    race = "on",
     deps = [
         "@com_github_mholt_archiver_v3//:archiver",
         "@com_github_stretchr_testify//assert",
         "@in_gopkg_loremipsum_v1//:loremipsum_v1",
         "@org_uber_go_goleak//:goleak",
     ],
-    race = "on",
 )

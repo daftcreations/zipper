@@ -14,6 +14,6 @@ go_library(
 go_binary(
     name = "zipper",
     embed = [":zipper_lib"],
-    visibility = ["//visibility:public"],
     pure = "on",
+    visibility = ["//visibility:public"],
 )

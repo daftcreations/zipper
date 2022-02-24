@@ -11,8 +11,5 @@ go_test(
     name = "pkg_test",
     srcs = ["helper_test.go"],
     embed = [":pkg"],
-    deps = [
-        "@com_github_stretchr_testify//assert",
-        "@org_uber_go_goleak//:goleak",
-    ],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

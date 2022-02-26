@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "pkg",
+    srcs = ["helper.go"],
+    importpath = "github.com/pratikbalar/zipper/pkg",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "pkg_test",
+    srcs = ["helper_test.go"],
+    embed = [":pkg"],
+    deps = ["@com_github_stretchr_testify//assert"],
+)

@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "zipper",
+    srcs = ["zip.go"],
+    importpath = "github.com/pratikbalar/zipper/internal/zipper",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//pkg",
+        "@com_github_mholt_archiver//:archiver",
+        "@com_github_oleiade_lane//:lane",
+    ],
+)
+
+go_test(
+    name = "zipper_test",
+    srcs = ["zip_test.go"],
+    embed = [":zipper"],
+    deps = [
+        "@com_github_mholt_archiver_v3//:archiver",
+        "@com_github_stretchr_testify//assert",
+        "@in_gopkg_loremipsum_v1//:loremipsum_v1",
+        "@org_uber_go_goleak//:goleak",
+    ],
+)

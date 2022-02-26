@@ -15,3 +15,9 @@ build:ci --build_metadata=VISIBILITY=PUBLIC
 build:ci --build_metadata=ROLE=CI
 build:ci --bes_results_url=https://app.buildbuddy.io/invocation/
 build:ci --bes_backend=grpcs://remote.buildbuddy.io
+
+## Local settings
+build --jobs=HOST_CPUS
+test --jobs=HOST_CPUS
+
+try-import ~/.bazelrc

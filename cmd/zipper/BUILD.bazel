@@ -14,19 +14,6 @@ go_library(
 go_binary(
     name = "zipper",
     embed = [":zipper_lib"],
-    pure = "on",
     static = "on",
     visibility = ["//visibility:public"],
-)
-
-load("@io_bazel_rules_docker//go:image.bzl", "go_image")
-
-go_image(
-    name = "go_image",
-    srcs = ["main.go"],
-    importpath = "github.com/pratikbalar/zipper/cmd/zipper",
-    deps = [
-        "//internal/zipper",
-        "@com_github_pkg_profile//:profile",
-    ],
 )

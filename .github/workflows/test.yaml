@@ -13,7 +13,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: bazelbuild/setup-bazelisk@v1
+      - name: Bazel cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/bazel
+          key: bazel-{{ hashFiles('WORKSPACE') }}
+          restore-keys: bazel-
+
+      - name: Setup bazelisk
+        uses: bazelbuild/setup-bazelisk@v1
 
       - name: Test
         run: |

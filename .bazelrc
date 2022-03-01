@@ -8,6 +8,7 @@ build:remote --platforms=@buildbuddy_toolchain//:platform
 build:remote --crosstool_top=@buildbuddy_toolchain//:toolchain
 build:remote --jobs=100
 build:remote --define=EXECUTOR=remote
+build:remote --modify_execution_info='GoStdlib.*=+no-remote-cache
 
 build:remote --extra_execution_platforms=@buildbuddy_toolchain//:platform
 build:remote --extra_toolchains=@buildbuddy_toolchain//:cc_toolchain

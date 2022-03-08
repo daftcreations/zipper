@@ -60,7 +60,7 @@ Container image availabel for
 
 - **windows**: *available soon*
 
-Image available for
+Binaries available for
 
 - **linux**: `amd64`, `386`, `arm64`, `riscv64`, `ppc64le`, `s390x`, `mips64le`, `mips64`, `arm/v7`, `arm/v6`
 
@@ -75,21 +75,20 @@ Image available for
 ### Testing
 
 ```shell
-go test -v ./...
-go test -v -race ./...
+bazel test //...
 ```
 
 ### Profiling
 
 ```shell
 go build -ldflags="-X main.profEnable=true" ./cmd/zipper/
-./zipper 10000 /home/pratik/workspace/pratikbalar/zipper/test
 ```
 
 #### CPU and Memory profiling
 
 ```shell
-go tool pprof -http=:8080 mem.pprof
+go tool pprof -http=:8080 mem.pprof &
+go tool pprof -http=:8081 cpu.pprof
 ```
 
 <!-- **OR** -->
@@ -106,9 +105,34 @@ go tool trace trace.out
 
 > <div>Icons made by <a href="https://www.freepik.com" **title**="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 
+### Build files
+
+```shell
+bazel run //:gazelle
+```
+
+### Go deps
+
+```shell
+bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=deps.bzl%go_dependencies
+```
+
 ## To-Do
 
-move to [todo.md](TODO.md)
+- [ ] Use existing buffer for zip creation
+- [ ] Replace queue with channels
+- [ ] Try bazel
+- [ ] Add structured logging `<TYPE>: <TIME> :`
+- [x] Check goroutine leak
+- [x] Create zipping worker with channels
+- [x] Go routines to handle zipping
+- [x] Don't change source dir name
+- [x] Configure size of zip from ~~env~~ cli
+- [x] docs: mkdocs CI
+<!-- Was part of resizer CLI - [x] What if photo size is less then given zip size -->
+- [x] Testing
+  - [x] e2e
+- [x] **README** Badges
 
 ---
 

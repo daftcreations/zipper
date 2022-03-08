@@ -54,3 +54,4 @@ trace.out
 .bazelversion
 # User-specific .bazelrc
 user.bazelrc
+cert/*

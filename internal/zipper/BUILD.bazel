@@ -7,6 +7,7 @@ go_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//pkg",
+        "@com_github_invisionapp_tabular//:tabular",
         "@com_github_mholt_archiver//:archiver",
         "@com_github_oleiade_lane//:lane",
     ],

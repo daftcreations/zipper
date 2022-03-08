@@ -1,4 +1,69 @@
+# gazelle:ignore
+
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+
+_go_platform = {
+    "linux": [
+        "amd64",
+        "386",
+        "arm",
+        "arm64",
+    ],
+    "darwin": [
+        "amd64",
+        "arm64",
+    ],
+    "windows": [
+        "386",
+        "amd64",
+        "arm",
+    ],
+    "freebsd": [
+        "amd64",
+        "386",
+        "arm",
+        "arm64",
+    ],
+    "openbsd": [
+        "amd64",
+        "386",
+        "arm",
+        "arm64",
+    ],
+}
+
+[
+    [
+        go_binary(
+            name = "zipper_" + goos + "_" + goarch,
+            out = "zipper_" + goos + "_" + goarch,
+            embed = [":zipper_lib"],
+            goarch = goarch,
+            goos = goos,
+            static = "on",
+            visibility = ["//visibility:public"],
+            gc_linkopts = ["-s", "-w"]
+        )
+        for goarch in goarch_arr
+    ]
+    for goos, goarch_arr in _go_platform.items()
+]
+
+zip_target_list = []
+
+[
+    [
+        zip_target_list.append(":zipper_" + goos + "_" + goarch)
+        for goarch in goarch_arr
+    ]
+    for goos, goarch_arr in _go_platform.items()
+]
+
+pkg_tar(
+    name = "zipper_tar",
+    srcs = zip_target_list,
+)
 
 go_library(
     name = "zipper_lib",
@@ -9,11 +74,4 @@ go_library(
         "//internal/zipper",
         "@com_github_pkg_profile//:profile",
     ],
-)
-
-go_binary(
-    name = "zipper",
-    embed = [":zipper_lib"],
-    static = "on",
-    visibility = ["//visibility:public"],
 )

@@ -1,4 +1,7 @@
+build:common --sandbox_debug
+build:common --verbose_failures
 build:common --strip=always
+test:common   --test_output=all
 
 build:remote --remote_cache=grpcs://remote.buildbuddy.io
 build:remote --remote_executor=grpcs://remote.buildbuddy.io

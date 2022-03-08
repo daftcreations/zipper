@@ -24,16 +24,19 @@ jobs:
       - name: Setup bazelisk
         uses: bazelbuild/setup-bazelisk@v1
 
+      - name: bazel version
+        run: bazelisk --version
+
       - name: Test
         run: |
           bazelisk test \
             --config=ci \
             --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_ORG_API_KEY }} \
-            //...
+            $(bazelisk query 'kind(".*_test", //...:*)')
 
       - name: Build
         run: |
           bazelisk build \
             --config=ci \
             --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_ORG_API_KEY }} \
-            //...
+            //cmd/zipper:zipper_tar

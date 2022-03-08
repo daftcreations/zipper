@@ -19,6 +19,7 @@ def go_dependencies():
         sum = "h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=",
         version = "v1.1.1",
     )
+
     go_repository(
         name = "com_github_dsnet_compress",
         importpath = "github.com/dsnet/compress",
@@ -37,6 +38,7 @@ def go_dependencies():
         sum = "h1:SPb1KFFmM+ybpEjPUhCCkZOM5xlovT5UbrMvWnXyBns=",
         version = "v1.14.2",
     )
+
     go_repository(
         name = "com_github_golang_snappy",
         importpath = "github.com/golang/snappy",
@@ -49,6 +51,14 @@ def go_dependencies():
         sum = "h1:81/ik6ipDQS2aGcBfIN5dHDB36BwrStyeAQquSYCV4o=",
         version = "v0.5.7",
     )
+
+    go_repository(
+        name = "com_github_invisionapp_tabular",
+        importpath = "github.com/InVisionApp/tabular",
+        sum = "h1:4DGJoBZRTcgd/O+YgfG7/9bXAQy01tSJxrxWEuHVgnM=",
+        version = "v0.3.0",
+    )
+
     go_repository(
         name = "com_github_klauspost_compress",
         importpath = "github.com/klauspost/compress",
@@ -103,12 +113,14 @@ def go_dependencies():
         sum = "h1:Cj0yZY6T1Zx1R7AhTbyGSALm44/Mmq+BAPc4B/p/d3M=",
         version = "v1.1.2",
     )
+
     go_repository(
         name = "com_github_oleiade_lane",
         importpath = "github.com/oleiade/lane",
         sum = "h1:hXofkn7GEOubzTwNpeL9MaNy8WxolCYb9cInAIeqShU=",
         version = "v1.0.1",
     )
+
     go_repository(
         name = "com_github_pierrec_lz4",
         importpath = "github.com/pierrec/lz4",
@@ -187,12 +199,14 @@ def go_dependencies():
         sum = "h1:0vLT13EuvQ0hNvakwLuFZ/jYrLp5F3kcWHXdRggjCE8=",
         version = "v2.1.0",
     )
+
     go_repository(
         name = "in_gopkg_loremipsum_v1",
         importpath = "gopkg.in/loremipsum.v1",
         sum = "h1:j6TAjs6Db5AMfLwTzs51Kq4Qx7dCufw/IJ0hpMbjU8U=",
         version = "v1.1.0",
     )
+
     go_repository(
         name = "in_gopkg_yaml_v3",
         importpath = "gopkg.in/yaml.v3",

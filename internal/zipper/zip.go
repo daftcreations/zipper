@@ -10,17 +10,22 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/InVisionApp/tabular"
 	"github.com/mholt/archiver"
 	"github.com/oleiade/lane"
 	. "github.com/pratikbalar/zipper/pkg"
 )
 
-var wg sync.WaitGroup
+var (
+	wg  sync.WaitGroup
+	tab tabular.Table
+)
 
 type zipTask struct {
 	zipFileList []string
 	dest        string
 	count       int
+	format      string
 }
 
 type filess struct {
@@ -29,14 +34,24 @@ type filess struct {
 }
 
 var (
-	newFiless []filess
-	count     int = 1
-	filesList []string
+	newFiless    []filess
+	count        int = 1
+	filesList    []string
+	goidRawSize  int = 10
+	filesRowSize int = 25
+	zipRowSize   int = 25
 )
+
+func init() {
+	tab = tabular.New()
+	tab.Col("goid", "Workerid", goidRawSize)
+	tab.Col("files", "Files", filesRowSize)
+	tab.Col("zip", "Zip", zipRowSize)
+}
 
 func CrateZips(dirPath string, zipSplitSize int) error {
 	zipQueue := make(chan zipTask, runtime.NumCPU()*4)
-	noOfWorker := 2
+	noOfWorker := runtime.NumCPU()
 	wg.Add(noOfWorker)
 	for i := 0; i < noOfWorker; i++ {
 		go makeArchive(zipQueue)
@@ -68,6 +83,8 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 	totalBytes := 0
 	buf := *new(bytes.Buffer)
 	zipWriter := zip.NewWriter(&buf)
+	format := tab.Print("*")
+
 	for {
 		singleFile := fmt.Sprint(queue.Dequeue())
 		filesList = append(filesList, singleFile)
@@ -100,6 +117,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 					filesList,
 					fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count),
 					count,
+					format,
 				}
 				close(zipQueue)
 				break
@@ -109,6 +127,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 				filesList[:len(filesList)-1],
 				fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count),
 				count,
+				format,
 			}
 
 			filesList = []string{}
@@ -120,6 +139,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 		close(zipQueue)
 	}
 	wg.Wait()
+	fmt.Println("Fin.")
 	return nil
 }
 
@@ -130,9 +150,16 @@ func makeArchive(zipQueue chan zipTask) {
 			wg.Done()
 			return
 		}
-		fmt.Printf("%v consuming %v\n", Goid(), zipTask)
 		if err := archiver.Archive(zipTask.zipFileList, zipTask.dest); err != nil {
 			log.Fatal(err)
 		}
+		fmt.Printf(zipTask.format, Goid(), filepath.Base(zipTask.zipFileList[0]), zipTask.dest)
+		for _, v := range zipTask.zipFileList[1:] {
+			fmt.Printf(zipTask.format, "", filepath.Base(v), "")
+		}
+		for i := 0; i < zipRowSize+filesRowSize+goidRawSize+2; i++ {
+			fmt.Print("-")
+		}
+		fmt.Println()
 	}
 }

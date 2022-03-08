@@ -1,12 +1,10 @@
-# Zipper [![Go Report Card](https://goreportcard.com/badge/github.com/pratikbalar/zipper)](https://goreportcard.com/report/github.com/pratikbalar/zipper)
+# Zipper [![Go Report Card](https://goreportcard.com/badge/github.com/pratikb/zipper)](https://goreportcard.com/report/github.com/pratikb/zipper)
 
 <img src="docs/zipper.png" alt="zipper logo" width="100" height="100"/>
 
 `zipper` create multiple zip files of X MB
 
 > for my friend savan
-
-![Views](https://dynamic-badges.maxalpha.repl.co/views?id=pratikbalar.zipper&style=for-the-badge&color=black)
 
 ## Usage
 
@@ -25,7 +23,7 @@ zipper <size> <target>
 > `slim` variant is UPX compressed
 
 ```shell
-git clone --depth 1 https://github.com/pratikbalar/zipper.git zipper
+git clone --depth 1 https://github.com/pratikb/zipper.git zipper
 cd zipper
 
 ## Get zipper binary

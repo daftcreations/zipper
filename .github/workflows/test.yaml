@@ -18,8 +18,8 @@ jobs:
         with:
           path: |
             ~/.cache/bazel
-          key: bazel-${{ github.sha }}
-          restore-keys: bazel-
+          key: ${{ runner.os }}-bazel-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-bazel-
 
       - name: Setup bazelisk
         uses: bazelbuild/setup-bazelisk@v1

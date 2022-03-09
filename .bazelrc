@@ -3,26 +3,6 @@ build:common --verbose_failures
 build:common --strip=always
 test:common   --test_output=all
 
-build:remote --remote_cache=grpcs://remote.buildbuddy.io
-build:remote --remote_executor=grpcs://remote.buildbuddy.io
-build:remote --remote_upload_local_results
-build:remote --host_platform=@buildbuddy_toolchain//:platform
-build:remote --platforms=@buildbuddy_toolchain//:platform
-build:remote --crosstool_top=@buildbuddy_toolchain//:toolchain
-build:remote --jobs=100
-build:remote --define=EXECUTOR=remote
-build:remote --modify_execution_info='GoStdlib.*=+no-remote-cache
-
-build:remote --extra_execution_platforms=@buildbuddy_toolchain//:platform
-build:remote --extra_toolchains=@buildbuddy_toolchain//:cc_toolchain
-
-build:ci --config=remote
-build:ci --config=common
-build:ci --build_metadata=VISIBILITY=PUBLIC
-build:ci --build_metadata=ROLE=CI
-build:ci --bes_results_url=https://app.buildbuddy.io/invocation/
-build:ci --bes_backend=grpcs://remote.buildbuddy.io
-
 ## Local settings
 build --config=common
 build --jobs=HOST_CPUS

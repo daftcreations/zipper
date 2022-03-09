@@ -18,7 +18,7 @@ jobs:
         with:
           path: |
             ~/.cache/bazel
-          key: bazel-{{ hashFiles('WORKSPACE') }}
+          key: bazel-${{ github.sha }}
           restore-keys: bazel-
 
       - name: Setup bazelisk

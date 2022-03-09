@@ -28,13 +28,7 @@ jobs:
         run: bazelisk --version
 
       - name: Test
-        run: |
-          bazelisk test \
-            --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_ORG_API_KEY }} \
-            $(bazelisk query 'kind(".*_test", //...:*)')
+        run: bazelisk test $(bazelisk query 'kind(".*_test", //...:*)')
 
       - name: Build
-        run: |
-          bazelisk build \
-            --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_ORG_API_KEY }} \
-            //cmd/zipper:zipper_tar
+        run: bazelisk build //cmd/zipper:zipper_tar

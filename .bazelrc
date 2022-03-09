@@ -1,11 +1,12 @@
-build:common --sandbox_debug
+## common settings
 build:common --verbose_failures
 build:common --strip=always
-test:common   --test_output=all
+build:common --jobs=HOST_CPUS
 
-## Local settings
+test:common --test_output=all
+test:common --jobs=HOST_CPUS
+
 build --config=common
-build --jobs=HOST_CPUS
-test --jobs=HOST_CPUS
+test --config=common
 
 try-import ~/.bazelrc

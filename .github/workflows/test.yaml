@@ -31,4 +31,7 @@ jobs:
         run: bazelisk test $(bazelisk query 'kind(".*_test", //...:*)')
 
       - name: Build
-        run: bazelisk build //cmd/zipper:zipper_tar
+        run: |
+          bazelisk build //cmd/zipper:zipper_windows_386
+          bazelisk build //cmd/zipper:zipper_windows_amd64
+          bazelisk build //cmd/zipper:zipper_darwin_arm64

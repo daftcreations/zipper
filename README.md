@@ -1,4 +1,4 @@
-# Zipper [![Go Report Card](https://goreportcard.com/badge/github.com/pratikb/zipper)](https://goreportcard.com/report/github.com/pratikb/zipper)
+# Zipper [![Go Report Card](https://goreportcard.com/badge/github.com/pratikbin/zipper)](https://goreportcard.com/report/github.com/pratikbin/zipper)
 
 <img src="docs/zipper.png" alt="zipper logo" width="100" height="100"/>
 
@@ -23,7 +23,7 @@ zipper <size> <target>
 > `slim` variant is UPX compressed
 
 ```shell
-git clone --depth 1 https://github.com/pratikb/zipper.git zipper
+git clone --depth 1 https://github.com/pratikbin/zipper.git zipper
 cd zipper
 
 ## Get zipper binary

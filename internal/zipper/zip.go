@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/InVisionApp/tabular"
@@ -17,8 +18,9 @@ import (
 )
 
 var (
-	wg  sync.WaitGroup
-	tab tabular.Table
+	wg           sync.WaitGroup
+	tab          tabular.Table
+	osPathSuffix string = "/"
 )
 
 type zipTask struct {
@@ -47,9 +49,16 @@ func init() {
 	tab.Col("goid", "Workerid", goidRawSize)
 	tab.Col("files", "Files", filesRowSize)
 	tab.Col("zip", "Zip", zipRowSize)
+
+	if runtime.GOOS == `windows` {
+		osPathSuffix = `\`
+	}
 }
 
 func CrateZips(dirPath string, zipSplitSize int) error {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	dirPath = strings.TrimRight(dirPath, osPathSuffix)
+
 	zipQueue := make(chan zipTask, runtime.NumCPU()*4)
 	noOfWorker := runtime.NumCPU()
 	wg.Add(noOfWorker)

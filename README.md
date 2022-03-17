@@ -115,11 +115,10 @@ bazel run //:gazelle
 bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=deps.bzl%go_dependencies
 ```
 
-## To-Do
+## TODO
 
-- [ ] Use existing buffer for zip creation
+- [ ] Use existing buffer for zip
 - [ ] Replace queue with channels
-- [ ] Try bazel
 - [ ] Add structured logging `<TYPE>: <TIME> :`
 - [x] Check goroutine leak
 - [x] Create zipping worker with channels

@@ -14,11 +14,6 @@ _go_platform = {
         "amd64",
         "arm64",
     ],
-    "windows": [
-        "386",
-        "amd64",
-        "arm",
-    ],
     "freebsd": [
         "amd64",
         "386",
@@ -31,6 +26,11 @@ _go_platform = {
         "arm",
         "arm64",
     ],
+    "windows": [
+        "386",
+        "amd64",
+        "arm",
+    ],
 }
 
 [
@@ -39,11 +39,14 @@ _go_platform = {
             name = "zipper_" + goos + "_" + goarch,
             out = "zipper_" + goos + "_" + goarch,
             embed = [":zipper_lib"],
+            gc_linkopts = [
+                "-s",
+                "-w",
+            ],
             goarch = goarch,
             goos = goos,
             static = "on",
             visibility = ["//visibility:public"],
-            gc_linkopts = ["-s", "-w"]
         )
         for goarch in goarch_arr
     ]
@@ -61,8 +64,16 @@ zip_target_list = []
 ]
 
 pkg_tar(
-    name = "zipper_tar",
+    name = "zipper_all_tar",
     srcs = zip_target_list,
+)
+
+pkg_tar(
+    name = "zipper_windows",
+    srcs = [
+        ":zipper_windows_386",
+        ":zipper_windows_amd64",
+    ],
 )
 
 go_library(

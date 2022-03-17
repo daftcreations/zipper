@@ -11,14 +11,14 @@ RUN apk --update add --no-cache git
 WORKDIR /src
 
 FROM base AS vendored
-RUN --mount=type=bind,target=.,rw \
+RUN --mount=type=bind,source=.,rw \
   --mount=type=cache,target=/go/pkg/mod \
   go mod tidy && go mod download
 
 ## bin
 FROM vendored AS bin
 ARG TARGETPLATFORM
-RUN --mount=type=bind,source=.,target=/src,rw \
+RUN --mount=type=bind,source=.,rw \
   --mount=type=cache,target=/root/.cache \
   --mount=type=cache,target=/go/pkg/mod \
   goreleaser-xx --debug \
@@ -33,7 +33,7 @@ RUN --mount=type=bind,source=.,target=/src,rw \
 FROM vendored AS bin-slim
 COPY --from=upx / /
 ARG TARGETPLATFORM
-RUN --mount=type=bind,source=.,target=/src,rw \
+RUN --mount=type=bind,source=.,rw \
   --mount=type=cache,target=/root/.cache \
   --mount=type=cache,target=/go/pkg/mod \
   goreleaser-xx --debug \

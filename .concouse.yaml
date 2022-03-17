@@ -1,0 +1,43 @@
+resources:
+  - name: zipper-git
+    type: git
+    source:
+      uri: https://github.com/pratikbin/zipper.git
+      branch: dev
+jobs:
+  - name: test-and-build
+    interruptible: false ## Worker will wait for this job to finishes before stopping/restarting
+    plan:
+      - in_parallel:
+          - get: zipper-git
+            params: { depth: 1 }
+            trigger: true
+      - task: bazel-test
+        config:
+          image_resource:
+            type: registry-image
+            source: { repository: gcc }
+          caches: [{ path: bazel-cache }]
+          platform: linux
+          inputs: [{ name: zipper-git }] #, { name: apache-pulsar }]
+          run:
+            path: bash
+            args:
+              - -cxe
+              - |
+                ROOT_DIR="$(pwd)"
+                curl -Ls -o /usr/local/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.11.0/bazelisk-linux-amd64
+                chmod +x /usr/local/bin/bazelisk
+                bazelisk --version
+
+                cd zipper-git
+                CACHE_FLAG="--remote_cache=grpc://bazel-remote-cache:9099 --disk_cache $ROOT_DIR/bazel-cache"
+                echo -e '\n\n \033[0;32m BAZEL test \e[0m \n\n'
+                bazelisk test $CACHE_FLAG //...
+
+                echo -e '\n\n \033[0;32m BAZEL build \e[0m \n\n'
+                bazelisk build $CACHE_FLAG //cmd/zipper:zipper_windows_386
+                bazelisk build $CACHE_FLAG //cmd/zipper:zipper_windows_amd64
+                bazelisk build $CACHE_FLAG //cmd/zipper:zipper_darwin_arm64
+
+# ufw allow from any to 100.92.234.122 port 8889

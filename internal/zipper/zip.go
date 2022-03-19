@@ -30,13 +30,7 @@ type zipTask struct {
 	format      string
 }
 
-type filess struct {
-	name string
-	size int64
-}
-
 var (
-	newFiless    []filess
 	count        int = 1
 	filesList    []string
 	goidRawSize  int = 10
@@ -102,7 +96,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 		if err != nil {
 			return err
 		}
-		fileBody, err := os.ReadFile(singleFile)
+		fileBody, err := os.ReadFile(filepath.Clean(singleFile))
 		if err != nil {
 			return err
 		}
@@ -155,7 +149,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 func makeArchive(zipQueue chan zipTask) {
 	for {
 		zipTask, ok := <-zipQueue
-		if ok == false {
+		if !ok {
 			wg.Done()
 			return
 		}

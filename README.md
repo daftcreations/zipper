@@ -70,12 +70,6 @@ Binaries available for
 
 ## Debug
 
-### Testing
-
-```shell
-bazel test //...
-```
-
 ### Profiling
 
 ```shell
@@ -102,18 +96,6 @@ go tool trace trace.out
 ```
 
 > <div>Icons made by <a href="https://www.freepik.com" **title**="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
-
-### Build files
-
-```shell
-bazel run //:gazelle
-```
-
-### Go deps
-
-```shell
-bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=deps.bzl%go_dependencies
-```
 
 ## TODO
 

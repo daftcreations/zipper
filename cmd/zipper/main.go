@@ -35,7 +35,9 @@ func main() {
 
 	for {
 		fmt.Println("\n\nEnter path you want to zip:")
-		fmt.Scanln(&path)
+		if _, err = fmt.Scanln(&path); err != nil {
+			log.Fatal(err)
+		}
 		err := CrateZips(path, zipSplitSize)
 		if err != nil {
 			log.Fatal("Error creating zip: ", err)

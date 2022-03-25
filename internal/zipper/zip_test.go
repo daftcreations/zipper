@@ -28,7 +28,7 @@ func TestE2E(t *testing.T) {
 	}
 	testDir := filepath.Join(pwd, "testdir")
 	tmpFilesPath := filepath.Join(testDir, "testfiles")
-	if err = os.MkdirAll(tmpFilesPath, 0777); err != nil {
+	if err = os.MkdirAll(tmpFilesPath, 0o750); err != nil {
 		t.Error("Error creating ", tmpFilesPath, " dir:", err)
 	}
 
@@ -36,14 +36,19 @@ func TestE2E(t *testing.T) {
 	for i := 0; i < noOfTmpFiles; i++ {
 		// tmpFileName := filepath.Join(tmpFilesPath, fmt.Sprint(i)+"-tmpfile.txt")
 		func(tmpFileName string) {
-			testFile, err := os.Create(tmpFileName)
+			testFile, err := os.Create(filepath.Clean(tmpFileName))
 			if err != nil {
 				t.Error("Error while creating file at ", tmpFileName, " :", err)
 			}
 			// testFile.Write([]byte(loremipsum.New().Sentences(4000)))
 			// testFile.Write([]byte(loremipsum.New().Sentences(rand.New(rand.NewSource(time.Now().UnixNano())).Intn(4000))))
-			testFile.Write([]byte(loremipsum.New().Sentences(4000)))
-			testFile.Close()
+			_, err = testFile.Write([]byte(loremipsum.New().Sentences(4000)))
+			if err != nil {
+				t.Error(err)
+			}
+			if err = testFile.Close(); err != nil {
+				t.Error(err)
+			}
 		}(filepath.Join(tmpFilesPath, fmt.Sprint(i)+"-tmpfile.txt"))
 	}
 
@@ -64,7 +69,7 @@ func TestE2E(t *testing.T) {
 
 	// Extract files
 	extractedZips := filepath.Join(pwd, "extractedzips")
-	if err = os.MkdirAll(extractedZips, 0777); err != nil {
+	if err = os.MkdirAll(extractedZips, 0o750); err != nil {
 		t.Error("Error creating ", extractedZips, " dir:", err)
 	}
 	if err = filepath.Walk(pwd,

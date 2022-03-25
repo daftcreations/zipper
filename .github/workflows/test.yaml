@@ -2,6 +2,11 @@ name: test
 
 on:
   push:
+    paths:
+      - "**.go"
+      - "go.*"
+      - ".github/workflows/test.yaml"
+      - "!**.md"
 
 jobs:
   test:
@@ -11,13 +16,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-
+      - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.17.x
-
-      - uses: actions/cache@v3
+          go-version: 1.18
+      - uses: actions/cache@v2
         with:
           path: |
             ~/Library/Caches/go-build
@@ -27,6 +30,4 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
-      - run: |
-          go test -race ./...
+      - run: go test -v -race ./...

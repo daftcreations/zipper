@@ -1,0 +1,95 @@
+resources:
+  - name: zipper-git
+    type: git
+    source:
+      uri: https://github.com/pratikbin/zipper.git
+      branch: dev
+jobs:
+  - name: lint-test-build
+    interruptible: false ## Worker will wait for this job to finishes before stopping/restarting
+    plan:
+      - in_parallel:
+          - get: zipper-git
+            params: { depth: 1 }
+            trigger: true
+      - task: lint
+        config:
+          image_resource:
+            type: registry-image
+            source: { repository: golang }
+          caches: [{ path: gopath }]
+          platform: linux
+          inputs: [{ name: zipper-git }]
+          run:
+            path: bash
+            args:
+              - -cux
+              - |
+                export GOPATH=$PWD/gopath
+                export PATH=$GOPATH/bin:$PATH
+                go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+                cd zipper-git
+
+                golangci-lint run || true
+      - task: test
+        config:
+          image_resource:
+            type: registry-image
+            source: { repository: golang }
+          caches: [{ path: gopath }]
+          platform: linux
+          inputs: [{ name: zipper-git }]
+          run:
+            path: bash
+            args:
+              - -ceux
+              - |
+                export GOPATH=$PWD/gopath
+                export PATH=$GOPATH/bin:$PATH
+                cd zipper-git
+                go test ./...
+      - task: build
+        config:
+          image_resource:
+            type: registry-image
+            source: { repository: golang }
+          caches: [{ path: gopath }]
+          platform: linux
+          inputs: [{ name: zipper-git }]
+          run:
+            path: bash
+            args:
+              - -ceux
+              - |
+                export GOPATH=$PWD/gopath
+                export PATH=$GOPATH/bin:$PATH
+                cd zipper-git
+                go build ./...
+
+  - name: container-build
+    interruptible: false
+    plan:
+      - get: zipper-git
+        params: { depth: 1 }
+        trigger: true
+      - task: build
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: zipper-git
+              path: .
+          outputs:
+            - name: image
+          caches:
+            - path: cache
+          params:
+            # CONTEXT: zipper-git
+            TARGET: artifact-all
+          run:
+            path: build

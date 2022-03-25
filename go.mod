@@ -22,6 +22,7 @@ require (
 )
 
 require (
+	github.com/InVisionApp/tabular v0.3.0
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/oleiade/lane v1.0.1

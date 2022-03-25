@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime"
 	"strconv"
-	"strings"
 
 	"github.com/pkg/profile"
 	. "github.com/pratikbalar/zipper/internal/zipper"
@@ -14,7 +12,6 @@ import (
 
 var (
 	profEnable      string = "false"
-	osPathSuffix    string = "/"
 	tmpZipSplitSize int
 )
 
@@ -30,12 +27,6 @@ func main() {
 		).Stop()
 	}
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	if runtime.GOOS == `windows` {
-		osPathSuffix = `\`
-	}
-
 	if tmpZipSplitSize, err = strconv.Atoi(os.Args[1]); err != nil {
 		log.Fatalln("Converting tmpZipSplitSize: ", err)
 	}
@@ -44,8 +35,10 @@ func main() {
 
 	for {
 		fmt.Println("\n\nEnter path you want to zip:")
-		fmt.Scanln(&path)
-		err := CrateZips(strings.TrimRight(path, osPathSuffix), zipSplitSize)
+		if _, err = fmt.Scanln(&path); err != nil {
+			log.Fatal(err)
+		}
+		err := CrateZips(path, zipSplitSize)
 		if err != nil {
 			log.Fatal("Error creating zip: ", err)
 		}

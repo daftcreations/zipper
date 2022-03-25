@@ -8,35 +8,56 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
+	"time"
 
+	"github.com/InVisionApp/tabular"
 	"github.com/mholt/archiver"
 	"github.com/oleiade/lane"
 	. "github.com/pratikbalar/zipper/pkg"
 )
 
-var wg sync.WaitGroup
+var (
+	wg           sync.WaitGroup
+	tab          tabular.Table
+	osPathSuffix string = "/"
+)
 
 type zipTask struct {
 	zipFileList []string
 	dest        string
 	count       int
-}
-
-type filess struct {
-	name string
-	size int64
+	format      string
 }
 
 var (
-	newFiless []filess
-	count     int = 1
-	filesList []string
+	count        int = 1
+	filesList    []string
+	goidRawSize  int = 10
+	filesRowSize int = 25
+	zipRowSize   int = 25
 )
 
+func init() {
+	tab = tabular.New()
+	tab.Col("goid", "Workerid", goidRawSize)
+	tab.Col("files", "Files", filesRowSize)
+	tab.Col("zip", "Zip", zipRowSize)
+
+	if runtime.GOOS == `windows` {
+		osPathSuffix = `\`
+	}
+}
+
 func CrateZips(dirPath string, zipSplitSize int) error {
+	now := time.Now()
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	dirPath = strings.TrimRight(dirPath, osPathSuffix)
 	zipQueue := make(chan zipTask, runtime.NumCPU()*4)
-	noOfWorker := 2
+	noOfWorker := runtime.NumCPU()
+
 	wg.Add(noOfWorker)
 	for i := 0; i < noOfWorker; i++ {
 		go makeArchive(zipQueue)
@@ -68,6 +89,8 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 	totalBytes := 0
 	buf := *new(bytes.Buffer)
 	zipWriter := zip.NewWriter(&buf)
+	format := tab.Print("*")
+
 	for {
 		singleFile := fmt.Sprint(queue.Dequeue())
 		filesList = append(filesList, singleFile)
@@ -76,7 +99,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 		if err != nil {
 			return err
 		}
-		fileBody, err := os.ReadFile(singleFile)
+		fileBody, err := os.ReadFile(filepath.Clean(singleFile))
 		if err != nil {
 			return err
 		}
@@ -100,6 +123,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 					filesList,
 					fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count),
 					count,
+					format,
 				}
 				close(zipQueue)
 				break
@@ -109,6 +133,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 				filesList[:len(filesList)-1],
 				fmt.Sprintf("%s-%v.zip", filepath.Base(dirPath), count),
 				count,
+				format,
 			}
 
 			filesList = []string{}
@@ -120,19 +145,27 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 		close(zipQueue)
 	}
 	wg.Wait()
+	fmt.Println("Fin. Took ", time.Since(now))
 	return nil
 }
 
 func makeArchive(zipQueue chan zipTask) {
 	for {
 		zipTask, ok := <-zipQueue
-		if ok == false {
+		if !ok {
 			wg.Done()
 			return
 		}
-		fmt.Printf("%v consuming %v\n", Goid(), zipTask)
 		if err := archiver.Archive(zipTask.zipFileList, zipTask.dest); err != nil {
 			log.Fatal(err)
 		}
+		fmt.Printf(zipTask.format, Goid(), filepath.Base(zipTask.zipFileList[0]), zipTask.dest)
+		for _, v := range zipTask.zipFileList[1:] {
+			fmt.Printf(zipTask.format, "", filepath.Base(v), "")
+		}
+		for i := 0; i < zipRowSize+filesRowSize+goidRawSize+2; i++ {
+			fmt.Print("-")
+		}
+		fmt.Println()
 	}
 }

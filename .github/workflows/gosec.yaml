@@ -1,6 +1,11 @@
 name: Gosec
 on:
   push:
+    paths:
+      - "**.go"
+      - "go.*"
+      - "!**.md"
+
 jobs:
   gosec:
     runs-on: ubuntu-latest

@@ -1,8 +1,14 @@
 name: lint
 on:
   push:
+    paths:
+      - "**.go"
+      - "go.*"
+      - "!**.md"
+
 permissions:
   contents: read
+
 jobs:
   lint:
     name: lint

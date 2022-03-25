@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/InVisionApp/tabular"
 	"github.com/mholt/archiver"
@@ -50,11 +51,13 @@ func init() {
 }
 
 func CrateZips(dirPath string, zipSplitSize int) error {
+	now := time.Now()
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	dirPath = strings.TrimRight(dirPath, osPathSuffix)
-
 	zipQueue := make(chan zipTask, runtime.NumCPU()*4)
 	noOfWorker := runtime.NumCPU()
+
 	wg.Add(noOfWorker)
 	for i := 0; i < noOfWorker; i++ {
 		go makeArchive(zipQueue)
@@ -142,7 +145,7 @@ func CrateZips(dirPath string, zipSplitSize int) error {
 		close(zipQueue)
 	}
 	wg.Wait()
-	fmt.Println("Fin.")
+	fmt.Println("Fin. Took ", time.Since(now))
 	return nil
 }
 

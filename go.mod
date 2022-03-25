@@ -26,9 +26,8 @@ require (
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/oleiade/lane v1.0.1
-	github.com/panjf2000/ants/v2 v2.4.8
 	github.com/pkg/profile v1.6.0
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	go.uber.org/goleak v1.1.12
 	gopkg.in/loremipsum.v1 v1.1.0
 )

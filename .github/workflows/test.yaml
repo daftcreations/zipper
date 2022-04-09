@@ -2,6 +2,10 @@ name: test
 
 on:
   push:
+    paths:
+      - "**/**.go"
+      - "**/go.**"
+      - ".github/workflows/test.yaml"
 
 jobs:
   test:
@@ -24,9 +28,9 @@ jobs:
             %LocalAppData%\go-build
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: gomod-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-
+            gomod-
 
       - run: |
           go test -race ./...

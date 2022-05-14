@@ -6,6 +6,8 @@ on:
       - "go.*"
       - ".github/workflows/gosec.yaml"
       - "!**.md"
+    tags-ignore:
+      - "*"
 
 jobs:
   gosec:

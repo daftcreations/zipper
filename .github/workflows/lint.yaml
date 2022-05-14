@@ -6,6 +6,8 @@ on:
       - "go.*"
       - ".github/workflows/lint.yaml"
       - "!**.md"
+    tags-ignore:
+      - "*"
 
 permissions:
   contents: read

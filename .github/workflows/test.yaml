@@ -7,6 +7,8 @@ on:
       - "go.*"
       - ".github/workflows/test.yaml"
       - "!**.md"
+    tags-ignore:
+      - "*"
 
 jobs:
   test:
@@ -24,30 +26,13 @@ jobs:
           go-version: 1.18
       - name: Cache go mods
         uses: actions/cache@v2
-        if: ${{ matrix.os == 'ubuntu-latest' }}
         with:
           path: |
             ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - name: Cache go mods
-        uses: actions/cache@v2
-        if: ${{ matrix.os == 'macos-latest' }}
-        with:
-          path: |
             ~/Library/Caches/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - name: Cache go mods
-        uses: actions/cache@v2
-        if: ${{ matrix.os == 'windows-latest' }}
-        with:
-          path: |
             %LocalAppData%\go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+            ~/go/pkg/mod
+          key: go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-
+            go-
       - run: go test -v -race ./...

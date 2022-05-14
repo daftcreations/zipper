@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -10,14 +11,56 @@ import (
 	. "github.com/pratikbalar/zipper/internal/zipper"
 )
 
+// CLI flags variables
 var (
 	profEnable      string = "false"
 	tmpZipSplitSize int
+
+	Version   = "0.0.0"
+	CommitSha = "xxxx"
+	BuildTime = "0000-00-00T00:00:00+00:00"
 )
 
 func main() {
-	var err error
-	var path string
+	var (
+		err  error
+		path string
+
+		// CLI flags
+		help       bool
+		getVersion bool
+	)
+
+	flag.BoolVar(&getVersion, "version", false, "get version")
+	flag.BoolVar(&help, "help", false, "display help and exit")
+
+	flag.Parse()
+
+	if getVersion {
+		fmt.Printf(`zipper v%s (sha: %s) (BuildTime: %s)
+
+Made by DaftCreations, Opensource org For People/Creator, By People/Creator.
+
+Soon to be DAO - https://github.com/daftcreations
+`,
+			Version, CommitSha, BuildTime)
+		return
+	}
+
+	if help || len(flag.Args()) == 0 {
+		fmt.Print(`zipper Usage:
+
+$ zipper <size> # size in KiloBytes
+Splitting into <size> KB
+
+Enter path you want to zip:
+> <PATH>
+
+Flags:
+`)
+		flag.PrintDefaults()
+		return
+	}
 
 	if profEnable == "true" {
 		defer profile.Start(profile.ProfilePath("."),
@@ -35,7 +78,7 @@ func main() {
 
 	for {
 		fmt.Println("\nEnter path you want to zip:")
-		fmt.Print(">")
+		fmt.Print("> ")
 		if _, err = fmt.Scanln(&path); err != nil {
 			log.Fatal(err)
 		}

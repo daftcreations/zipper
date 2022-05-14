@@ -34,7 +34,8 @@ func main() {
 	fmt.Println("Splitting into", tmpZipSplitSize, "KB")
 
 	for {
-		fmt.Println("\n\nEnter path you want to zip:")
+		fmt.Println("\nEnter path you want to zip:")
+		fmt.Print(">")
 		if _, err = fmt.Scanln(&path); err != nil {
 			log.Fatal(err)
 		}

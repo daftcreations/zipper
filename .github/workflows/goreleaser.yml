@@ -44,33 +44,7 @@ jobs:
       - name: goreleaser
         uses: goreleaser/goreleaser-action@v2
         with:
-          versison: latest
+          version: latest
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  instl-test:
-    needs: [goreleaser]
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: test in ubuntu
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          set +e -x
-          curl -fsSL instl.sh/daftcreations/gcps/linux | bash
-          export PATH=$PATH:$HOME/.local/bin
-          zipper -version
-          exit $?
-
-      - name: test in macos
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: |
-          set +e -x
-          curl -fsSL instl.sh/daftcreations/gcps/macos | bash
-          export PATH=$PATH:$HOME/.local/bin
-          zipper -version
-          exit $?

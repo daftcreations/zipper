@@ -69,6 +69,7 @@ jobs:
       - name: test in macos
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
+          set +e -x
           curl -fsSL instl.sh/daftcreations/gcps/macos | bash
           export PATH=$PATH:$HOME/.local/bin
           zipper -version

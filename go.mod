@@ -18,7 +18,7 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
@@ -26,7 +26,7 @@ require (
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/oleiade/lane v1.0.1
 	github.com/pkg/profile v1.6.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.3
 	go.uber.org/goleak v1.1.12
 	gopkg.in/loremipsum.v1 v1.1.0
 )

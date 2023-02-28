@@ -27,6 +27,6 @@ require (
 	github.com/oleiade/lane v1.0.1
 	github.com/pkg/profile v1.6.0
 	github.com/stretchr/testify v1.8.2
-	go.uber.org/goleak v1.1.12
+	go.uber.org/goleak v1.2.1
 	gopkg.in/loremipsum.v1 v1.1.0
 )
